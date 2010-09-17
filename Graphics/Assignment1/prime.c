@@ -13,9 +13,27 @@
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include <math.h>
+#include <stdio.h>
 
 #define TRUE 1
 #define FALSE 0
+
+#define DEFAULT_FONT GLUT_BITMAP_8_BY_13
+#define BUF_SIZ 256
+
+#define MAX_INT 50
+#define MIN_INT 0
+
+#define POINT_SIZE 4.5
+
+/**************************************************************************/
+/* Declare function prototypes
+ **************************************************************************/
+struct Point
+{
+    int x;
+    int y;
+};
 
 /**************************************************************************/
 /* Declare function prototypes
@@ -26,8 +44,12 @@ void KeyboardFunc( unsigned char , int , int ); /* Handles Keyboard */
 
 int enableAll = FALSE;
 int enableShow = FALSE;
+int enableRandom = FALSE;
+
 int m = 7;
 int n = 3;
+
+struct Point p*;
 
 /**************************************************************************/
 /* main: all initialization and callback registration.
@@ -81,22 +103,35 @@ void KeyboardFunc( unsigned char key, int x, int y )
             else
                 enableAll = TRUE;
             break;
-        case 'm': m++; break; /* Increment m */
-        case 'M': m--; break; /* Decrement m */
-        case 'n': n++; break; /* Increment n */
-        case 'N': n--; break; /* Decerement n */
+        case 'r': /* Enable the Show Random Colors */
+            if(enableRandom)
+                enableRandom = FALSE;
+            else
+                enableRandom = TRUE;
+            break;
+        case 'M':
+            if(m < MAX_INT)
+                m++; /* Increment m */
+            break;
+        case 'm':
+            if(m > MIN_INT)
+                m--; /* Decrement m */
+            break;
+        case 'M':
+            if(n < MAX_INT)
+                n++; /* Increment n */
+            break;
+        case 'm':
+            if(n > MIN_INT)
+                n--; /* Decrement n */
+            break;
         default: return; /* Exit if another key was pressed */
     }
 
     /* Redraw the Display */
     glutPostRedisplay();
-
-    return;
 }
 
-/**************************************************************************/
-/* A function which draws a line 
- **************************************************************************/
 void DrawLine( float x0, float y0, 
                float x1, float y1 )
 {
@@ -129,13 +164,14 @@ void DrawStarPolygon( float r, int m, int n )
 
     glBegin( GL_LINE_STRIP );
     { 
+        glColor3f(1.0, 1.0, 1.0);
         float angle = ( 2 * M_PI ) / m;
         for(i = 0; i < m; ++i)
         {   
-            glColor3f(((float)rand() / RAND_MAX),
-                     ((float)rand() / RAND_MAX),
-                     ((float)rand() / RAND_MAX));
-
+            if(enableRandom)
+                glColor3f(((float)rand() / RAND_MAX),
+                        ((float)rand() / RAND_MAX),
+                        ((float)rand() / RAND_MAX));
             glVertex2f(cos(angle * ( i * n )) * r, 
                        sin(angle * ( i * n )) * r);
             glVertex2f(cos(angle * ( (i + 1) * n) ) * r,
@@ -149,8 +185,13 @@ void DrawStarPoints( float r, int m, int n )
 {
     int i = 0;
 
+    /* Set the Point Size */
+    glPointSize(POINT_SIZE);
+
+    /* Draw the Points */
     glBegin( GL_POINTS );
     { 
+        /* Calculate out the angles */
         float angle = ( 2 * M_PI ) / m;
         for(i = 0; i < m; ++i)
         {   
@@ -177,9 +218,11 @@ void DrawText( float x, float y, void* font, char* buf)
 
 void Draw( void )
 {
+    char buf[BUF_SIZ];
     int menu;
     int i;
     float r = 0.8;
+    int starCount = 0;
 
     /* Clear the screen ... */
     glClear( GL_COLOR_BUFFER_BIT );
@@ -209,16 +252,23 @@ void Draw( void )
         if(enableShow)
         {
             /* Draw the Cartesian plane */
+            glColor3f(0.75, 0.75, 0.75);
             DrawLine(-1.0, 0.0, 1.0, 0.0);
             DrawLine(0.0, -1.0, 0.0, 1.0);
 
             /* Draw the Circle */
+            glColor3f(0.8, 0.8, 0.8);
             DrawPolygon(r, 100);
             
             /* Draw the Points */
             DrawStarPoints(r, m, n);
         }
 
+    }
+    else
+    {
+        /* Issue Text regarding Polygon */
+        DrawText(-0.5, -0.75, DEFAULT_FONT, "Star Polygon can not be drawn!");
     }
 
     /* Draw the ViewPort */
@@ -234,10 +284,25 @@ void Draw( void )
         glVertex2f(1.0, -1.0);
     glEnd();
 
-    /* Draw the text */
-    glColor3f(1.0, 1.0, 1.0);
-    glRasterPos2f(-0.8, 0.8);
-    glutBitmapString(GLUT_BITMAP_8_BY_13, "Test");
+    /* Draw the M value */
+    sprintf(buf, "[M/m] m value: %d", m);
+    DrawText(-0.8, 0.8, DEFAULT_FONT, buf);
+
+    /* Draw the N value */
+    sprintf(buf, "[N/n] n value: %d", n);
+    DrawText(-0.8, 0.7, DEFAULT_FONT, buf);
+
+    /* Draw the Show All */
+    sprintf(buf, "[%c] Show All", enableAll ? 'x' : ' ');
+    DrawText(-0.8, 0.6, DEFAULT_FONT, buf);
+
+    /* Draw the Show Additional */
+    sprintf(buf, "[%c] Show Graph", enableShow ? 'x' : ' ');
+    DrawText(-0.8, 0.5, DEFAULT_FONT, buf);
+
+    /* Draw the Show Random Colors */
+    sprintf(buf, "[%c] Show Random Colors", enableRandom ? 'x' : ' ');
+    DrawText(-0.8, 0.4, DEFAULT_FONT, buf);
 
     /* Flush the buffer */
     glutSwapBuffers(); 
