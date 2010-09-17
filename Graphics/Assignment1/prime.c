@@ -81,10 +81,11 @@ void KeyboardFunc( unsigned char key, int x, int y )
             else
                 enableAll = TRUE;
             break;
-        case 'm': m++; break;
-        case 'M': m--; break;
-        case 'n': n++; break;
-        case 'N': n--; break;
+        case 'm': m++; break; /* Increment m */
+        case 'M': m--; break; /* Decrement m */
+        case 'n': n++; break; /* Increment n */
+        case 'N': n--; break; /* Decerement n */
+        default: return; /* Exit if another key was pressed */
     }
 
     /* Redraw the Display */
@@ -162,6 +163,18 @@ void DrawStarPoints( float r, int m, int n )
     glEnd();
 }
 
+void DrawText( float x, float y, void* font, char* buf) 
+{
+    /* Set the color */
+    glColor3f(1.0, 1.0, 1.0);
+
+    /* Set the position */
+    glRasterPos2f(x, y);
+
+    /* Print the text */
+    glutBitmapString(font, buf);
+}
+
 void Draw( void )
 {
     int menu;
@@ -172,7 +185,7 @@ void Draw( void )
     glClear( GL_COLOR_BUFFER_BIT );
 
     /* Resize the viewport */
-    glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH) - 100, 
+    glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH) - (glutGet(GLUT_WINDOW_WIDTH) * 0.3), 
                      glutGet(GLUT_WINDOW_HEIGHT));
 
     /* Determine if to draw the Star Polygon */
@@ -205,12 +218,14 @@ void Draw( void )
             /* Draw the Points */
             DrawStarPoints(r, m, n);
         }
+
     }
 
     /* Draw the ViewPort */
-    glViewport(glutGet(GLUT_WINDOW_WIDTH) - 100, 0,
-               100, glutGet(GLUT_WINDOW_HEIGHT));
+    glViewport(glutGet(GLUT_WINDOW_WIDTH) - (glutGet(GLUT_WINDOW_WIDTH) * 0.3), 0,
+               glutGet(GLUT_WINDOW_WIDTH) * 0.3, glutGet(GLUT_WINDOW_HEIGHT));
 
+    /* Draw the Background */
     glBegin(GL_QUADS);
         glColor3f(0.22, 0.22, 0.22);
         glVertex2f(-1.0, -1.0);
@@ -219,11 +234,18 @@ void Draw( void )
         glVertex2f(1.0, -1.0);
     glEnd();
 
+    /* Draw the text */
+    glColor3f(1.0, 1.0, 1.0);
+    glRasterPos2f(-0.8, 0.8);
+    glutBitmapString(GLUT_BITMAP_8_BY_13, "Test");
+
     /* Flush the buffer */
     glutSwapBuffers(); 
 
     return;
 }
+
+
 
 /**************************************************************************/
 /* A function which calculates coprime between to ints
