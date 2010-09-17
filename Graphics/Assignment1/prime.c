@@ -26,19 +26,22 @@ void KeyboardFunc( unsigned char , int , int ); /* Handles Keyboard */
 
 int enableAll = FALSE;
 int enableShow = FALSE;
-
-void MenuTest(int menu)
-{
-    return;
-}
+int m = 7;
+int n = 3;
 
 /**************************************************************************/
 /* main: all initialization and callback registration.
  **************************************************************************/
 int main( int argc, char *argv[] )
 {
+    /* Seed the random number generator */
+    srand(time(0));
+
     /* Initialize the drawing environment */
     glutInit( &argc, argv );
+
+    /* Initialize the display mode */
+    glutInitDisplayMode ( GLUT_DOUBLE );
 
     /* Create an application window of a certain size */
     glutInitWindowSize( 600, 300 );
@@ -51,7 +54,7 @@ int main( int argc, char *argv[] )
 
     /* Create the Keyboard callback */
     glutKeyboardFunc( KeyboardFunc );
-  
+
     /* Turn over control to OpenGL */
     glutMainLoop();
 
@@ -78,6 +81,10 @@ void KeyboardFunc( unsigned char key, int x, int y )
             else
                 enableAll = TRUE;
             break;
+        case 'm': m++; break;
+        case 'M': m--; break;
+        case 'n': n++; break;
+        case 'N': n--; break;
     }
 
     /* Redraw the Display */
@@ -124,6 +131,10 @@ void DrawStarPolygon( float r, int m, int n )
         float angle = ( 2 * M_PI ) / m;
         for(i = 0; i < m; ++i)
         {   
+            glColor3f(((float)rand() / RAND_MAX),
+                     ((float)rand() / RAND_MAX),
+                     ((float)rand() / RAND_MAX));
+
             glVertex2f(cos(angle * ( i * n )) * r, 
                        sin(angle * ( i * n )) * r);
             glVertex2f(cos(angle * ( (i + 1) * n) ) * r,
@@ -155,18 +166,16 @@ void Draw( void )
 {
     int menu;
     int i;
-    int m = 7;
-    int n = 3;
     float r = 0.8;
 
-  	/* Clear the screen ... */
-   	glClear( GL_COLOR_BUFFER_BIT );
+    /* Clear the screen ... */
+    glClear( GL_COLOR_BUFFER_BIT );
 
     /* Resize the viewport */
     glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH) - 100, 
                      glutGet(GLUT_WINDOW_HEIGHT));
 
-	/* Determine if to draw the Star Polygon */
+    /* Determine if to draw the Star Polygon */
     if((CalculatePrime(m, n) == 1) && (n <= (m / 2)))
     {
         /* Draw the Star Polyon */
@@ -198,10 +207,22 @@ void Draw( void )
         }
     }
 
-  	/* Flush the buffer */
-  	glFlush(); 
-   
-   	return;
+    /* Draw the ViewPort */
+    glViewport(glutGet(GLUT_WINDOW_WIDTH) - 100, 0,
+               100, glutGet(GLUT_WINDOW_HEIGHT));
+
+    glBegin(GL_QUADS);
+        glColor3f(0.22, 0.22, 0.22);
+        glVertex2f(-1.0, -1.0);
+        glVertex2f(-1.0, 1.0);
+        glVertex2f(1.0, 1.0);
+        glVertex2f(1.0, -1.0);
+    glEnd();
+
+    /* Flush the buffer */
+    glutSwapBuffers(); 
+
+    return;
 }
 
 /**************************************************************************/
