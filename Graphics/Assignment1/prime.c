@@ -14,6 +14,8 @@
 #include <GL/glut.h>
 #include <math.h>
 #include <stdio.h>
+#include <unistd.h>
+#include <malloc.h>
 
 #define TRUE 1
 #define FALSE 0
@@ -31,8 +33,8 @@
  **************************************************************************/
 struct Point
 {
-    int x;
-    int y;
+    float x;
+    float y;
 };
 
 /**************************************************************************/
@@ -49,7 +51,7 @@ int enableRandom = FALSE;
 int m = 7;
 int n = 3;
 
-struct Point p*;
+struct Point *p;
 
 /**************************************************************************/
 /* main: all initialization and callback registration.
@@ -81,6 +83,31 @@ int main( int argc, char *argv[] )
     glutMainLoop();
 
     return( 0 );  /* NOTE: this is here only for ANSI requirements */
+}
+
+void CalculatePoints( float r, int m, int n )
+{
+    float angle;
+    int i = 0;
+
+    /* Clear the current memory */
+    free(p);
+
+    /* Instantiate the new array of Points */
+    if((p = malloc(sizeof(struct Point) * m)) == NULL)
+    {
+        /* Error encountered */
+        fprintf(stderr, "Could not allocate array\n");
+        exit(0);
+    }
+
+    /* Calculate the Points */
+    angle = ( 2 * M_PI ) / m;
+    for(i = 0; i < m; ++i)
+    {
+        p[i].x = cos(angle * i);
+        p[i].y = sin(angle * i);
+    }
 }
 
 void KeyboardFunc( unsigned char key, int x, int y )
@@ -117,11 +144,11 @@ void KeyboardFunc( unsigned char key, int x, int y )
             if(m > MIN_INT)
                 m--; /* Decrement m */
             break;
-        case 'M':
+        case 'N':
             if(n < MAX_INT)
                 n++; /* Increment n */
             break;
-        case 'm':
+        case 'n':
             if(n > MIN_INT)
                 n--; /* Decrement n */
             break;
