@@ -43,6 +43,12 @@ struct Point
 void Draw( void );
 void DrawLine( float , float , float, float );  /* Draws a line */
 void KeyboardFunc( unsigned char , int , int ); /* Handles Keyboard */
+void CalculatePoints( float r, int m, int n ); /* Calculate the Points */
+void DrawPolygon( float r, int sides );
+void DrawStarPoints( struct Point *p, int m, int n );
+void DrawStarPolygon( struct Point *p, int m, int n );
+void DrawText( float x, float y, void* font, char* buf);
+void ClearMemory( void )
 
 int enableAll = FALSE;
 int enableShow = FALSE;
@@ -50,6 +56,7 @@ int enableRandom = FALSE;
 
 int m = 7;
 int n = 3;
+float r = 0.8;
 
 struct Point *p;
 
@@ -79,227 +86,77 @@ int main( int argc, char *argv[] )
     /* Create the Keyboard callback */
     glutKeyboardFunc( KeyboardFunc );
 
+    /* Register Exit Handler */
+    atexit(ClearMemory);
+
+    /* Calculate the Points */
+    CalculatePoints(r, m, n);
+
     /* Turn over control to OpenGL */
     glutMainLoop();
 
     return( 0 );  /* NOTE: this is here only for ANSI requirements */
 }
 
-void CalculatePoints( float r, int m, int n )
+void ClearMemory( void )
 {
-    float angle;
-    int i = 0;
-
-    /* Clear the current memory */
+    /* Clear dynamically allocated memory */
     free(p);
-
-    /* Instantiate the new array of Points */
-    if((p = malloc(sizeof(struct Point) * m)) == NULL)
-    {
-        /* Error encountered */
-        fprintf(stderr, "Could not allocate array\n");
-        exit(0);
-    }
-
-    /* Calculate the Points */
-    angle = ( 2 * M_PI ) / m;
-    for(i = 0; i < m; ++i)
-    {
-        p[i].x = cos(angle * i);
-        p[i].y = sin(angle * i);
-    }
-}
-
-void KeyboardFunc( unsigned char key, int x, int y )
-{
-    /* Determine which key is pressed */
-    switch(key)
-    {
-        case 27: /* Escape the Program */
-            exit(0);
-            break;
-        case 's': /* Enable the Show Display Items */
-            if(enableShow)
-                enableShow = FALSE;
-            else
-                enableShow = TRUE;
-            break;
-        case 'a': /* Enable the Show All Polygons */
-            if(enableAll)
-                enableAll = FALSE;
-            else
-                enableAll = TRUE;
-            break;
-        case 'r': /* Enable the Show Random Colors */
-            if(enableRandom)
-                enableRandom = FALSE;
-            else
-                enableRandom = TRUE;
-            break;
-        case 'M':
-            if(m < MAX_INT)
-                m++; /* Increment m */
-            break;
-        case 'm':
-            if(m > MIN_INT)
-                m--; /* Decrement m */
-            break;
-        case 'N':
-            if(n < MAX_INT)
-                n++; /* Increment n */
-            break;
-        case 'n':
-            if(n > MIN_INT)
-                n--; /* Decrement n */
-            break;
-        default: return; /* Exit if another key was pressed */
-    }
-
-    /* Redraw the Display */
-    glutPostRedisplay();
-}
-
-void DrawLine( float x0, float y0, 
-               float x1, float y1 )
-{
-    /* Draw a line  */
-    glBegin( GL_LINES );
-        glVertex2f( x0, y0 );
-        glVertex2f( x1, y1 );
-    glEnd();
-
-    return;
-}
-
-void DrawPolygon( float r, int sides ) 
-{
-    float inc = (2 * M_PI / sides);
-    float i = 0.0f;
-
-    /* Draw a line  */
-    glBegin( GL_LINE_LOOP );
-        for(i = 0; i <= 2 * M_PI; i += inc)
-            glVertex2f(r * cos(i), r * sin(i));
-    glEnd();
-
-    return;
-}
-
-void DrawStarPolygon( float r, int m, int n )
-{
-    int i = 0;
-
-    glBegin( GL_LINE_STRIP );
-    { 
-        glColor3f(1.0, 1.0, 1.0);
-        float angle = ( 2 * M_PI ) / m;
-        for(i = 0; i < m; ++i)
-        {   
-            if(enableRandom)
-                glColor3f(((float)rand() / RAND_MAX),
-                        ((float)rand() / RAND_MAX),
-                        ((float)rand() / RAND_MAX));
-            glVertex2f(cos(angle * ( i * n )) * r, 
-                       sin(angle * ( i * n )) * r);
-            glVertex2f(cos(angle * ( (i + 1) * n) ) * r,
-                       sin(angle * ( (i + 1) * n) ) * r); 
-        }
-    }   
-    glEnd();
-}
-
-void DrawStarPoints( float r, int m, int n )
-{
-    int i = 0;
-
-    /* Set the Point Size */
-    glPointSize(POINT_SIZE);
-
-    /* Draw the Points */
-    glBegin( GL_POINTS );
-    { 
-        /* Calculate out the angles */
-        float angle = ( 2 * M_PI ) / m;
-        for(i = 0; i < m; ++i)
-        {   
-            glVertex2f(cos(angle * ( i * n )) * r, 
-                       sin(angle * ( i * n )) * r);
-            glVertex2f(cos(angle * ( (i + 1) * n) ) * r,
-                       sin(angle * ( (i + 1) * n) ) * r); 
-        }
-    }   
-    glEnd();
-}
-
-void DrawText( float x, float y, void* font, char* buf) 
-{
-    /* Set the color */
-    glColor3f(1.0, 1.0, 1.0);
-
-    /* Set the position */
-    glRasterPos2f(x, y);
-
-    /* Print the text */
-    glutBitmapString(font, buf);
 }
 
 void Draw( void )
 {
     char buf[BUF_SIZ];
-    int menu;
     int i;
-    float r = 0.8;
     int starCount = 0;
 
     /* Clear the screen ... */
     glClear( GL_COLOR_BUFFER_BIT );
 
     /* Resize the viewport */
-    glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH) - (glutGet(GLUT_WINDOW_WIDTH) * 0.3), 
+    glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH) * 0.7, 
                      glutGet(GLUT_WINDOW_HEIGHT));
 
-    /* Determine if to draw the Star Polygon */
-    if((CalculatePrime(m, n) == 1) && (n <= (m / 2)))
+    /* Draw the Star Polygons */
+    if(enableAll)
     {
-        /* Draw the Star Polyon */
-        if(enableAll)
-        {
-            /* Draw all the Star Polygons */
-            for(i = 1; i <= n; ++i)
-                if(CalculatePrime(m, n) == 1)
-                    DrawStarPolygon(r, m, i);
-        }
-        else
-        {
-            /* Draw the single Star Polygon */
-            DrawStarPolygon(r, m, n);
-        }
+        /* Draw all the Star Polygons */
+        for(i = 1; i < n; ++i)
+            if((n <= (m / 2)) && (CalculatePrime(m, n) == 1))
+            {
+                DrawStarPolygon(p, m, i);
+                starCount++;
+            }
+    }
 
-        /* Draw the additional objects */
-        if(enableShow)
-        {
-            /* Draw the Cartesian plane */
-            glColor3f(0.75, 0.75, 0.75);
-            DrawLine(-1.0, 0.0, 1.0, 0.0);
-            DrawLine(0.0, -1.0, 0.0, 1.0);
-
-            /* Draw the Circle */
-            glColor3f(0.8, 0.8, 0.8);
-            DrawPolygon(r, 100);
-            
-            /* Draw the Points */
-            DrawStarPoints(r, m, n);
-        }
-
+    /* Draw a Star Polygon */
+    if(((n <= (m / 2)) && CalculatePrime(m, n) == 1))
+    {
+        DrawStarPolygon(p, m, n);
+        starCount++;
     }
     else
-    {
         /* Issue Text regarding Polygon */
         DrawText(-0.5, -0.75, DEFAULT_FONT, "Star Polygon can not be drawn!");
+
+    /* Draw the additional objects */
+    if(enableShow)
+    {
+        /* Draw the Cartesian plane */
+        glColor3f(0.75, 0.75, 0.75);
+        DrawLine(-1.0, 0.0, 1.0, 0.0);
+        DrawLine(0.0, -1.0, 0.0, 1.0);
+
+        /* Draw the Circle */
+        glColor3f(0.8, 0.8, 0.8);
+        DrawPolygon(r, 100);
+        
+        /* Draw the Points */
+        DrawStarPoints(p, m, n);
     }
 
     /* Draw the ViewPort */
-    glViewport(glutGet(GLUT_WINDOW_WIDTH) - (glutGet(GLUT_WINDOW_WIDTH) * 0.3), 0,
+    glViewport(glutGet(GLUT_WINDOW_WIDTH) * 0.7, 0,
                glutGet(GLUT_WINDOW_WIDTH) * 0.3, glutGet(GLUT_WINDOW_HEIGHT));
 
     /* Draw the Background */
@@ -336,6 +193,177 @@ void Draw( void )
 
     return;
 }
+
+
+void CalculatePoints( float r, int m, int n )
+{
+    float angle;
+    int i = 0;
+
+    /* Clear the current memory */
+    free(p);
+
+    /* Instantiate the new array of Points */
+    p = (struct Point*)malloc(sizeof(struct Point) * m);
+    if(p == NULL)
+    {
+        /* Error encountered */
+        fprintf(stderr, "Could not allocate array\n");
+        exit(0);
+    }
+
+    /* Calculate the Points */
+    angle = ( 2 * M_PI ) / m;
+    for(i = 0; i < m; ++i)
+    {
+        p[i].x = cos(angle * i) * r;
+        p[i].y = sin(angle * i) * r;
+    }
+}
+
+void DrawStarPolygon( struct Point *p, int m, int n )
+{
+    int i, j;
+
+    /* Set the Default Color */
+    glColor3f(1.0, 1.0, 1.0);
+
+    /* Begin drawing a Strip of Lines */
+    glBegin( GL_LINE_STRIP );
+    {
+        for(i = 0; i <= m; ++i)
+        {
+            /* Draw Random Colors if required */
+            if(enableRandom)
+                glColor3f(((float)rand() / RAND_MAX),
+                        ((float)rand() / RAND_MAX),
+                        ((float)rand() / RAND_MAX));
+
+            /* Calculate the next point */
+            j = (i * n) % m;
+
+            /* Setup the point */
+            glVertex2f(p[j].x, p[j].y);
+        }
+    }
+    glEnd();
+}
+
+void DrawStarPoints( struct Point *p, int m, int n )
+{
+    int i = 0;
+
+    /* Set the Point Size */
+    glPointSize(POINT_SIZE);
+
+    /* Set the Point Color */
+    glColor3f(1.0, 0.0, 0.0);
+
+    /* Draw the Points */
+    glBegin( GL_POINTS );
+    {
+        /* Calculate out the angles */
+        for(i = 0; i < m; ++i)
+            glVertex2f(p[i].x, p[i].y);
+    }
+    glEnd();
+}
+
+void KeyboardFunc( unsigned char key, int x, int y )
+{
+    /* Determine which key is pressed */
+    switch(key)
+    {
+        case 27: /* Escape the Program */
+            exit(0);
+            break;
+        case 's': /* Enable the Show Display Items */
+            if(enableShow)
+                enableShow = FALSE;
+            else
+                enableShow = TRUE;
+            break;
+        case 'a': /* Enable the Show All Polygons */
+            if(enableAll)
+                enableAll = FALSE;
+            else
+                enableAll = TRUE;
+            break;
+        case 'r': /* Enable the Show Random Colors */
+            if(enableRandom)
+                enableRandom = FALSE;
+            else
+                enableRandom = TRUE;
+            break;
+        case 'M':
+            if(m < MAX_INT)
+                m++; /* Increment m */
+            break;
+        case 'm':
+            if(m > MIN_INT)
+            {
+               m--; /* Decrement m */
+               if(n >= (m / 2))
+                   n = (m / 2); /* Set n */
+            }
+            break;
+        case 'N':
+            if(n < (m / 2))
+                n++; /* Increment n */
+            break;
+        case 'n':
+            if(n > MIN_INT)
+                n--; /* Decrement n */
+            break;
+        default: return; /* Exit if another key was pressed */
+    }
+    /* Recalculate Points */
+    CalculatePoints(r, m, n);
+
+    /* Redraw the Display */
+    glutPostRedisplay();
+}
+
+void DrawLine( float x0, float y0, 
+               float x1, float y1 )
+{
+    /* Draw a line  */
+    glBegin( GL_LINES );
+        glVertex2f( x0, y0 );
+        glVertex2f( x1, y1 );
+    glEnd();
+
+    return;
+}
+
+void DrawPolygon( float r, int sides ) 
+{
+    float inc = (2 * M_PI / sides);
+    float i = 0.0f;
+
+    /* Draw a line  */
+    glBegin( GL_LINE_LOOP );
+        for(i = 0; i <= 2 * M_PI; i += inc)
+            glVertex2f(r * cos(i), r * sin(i));
+    glEnd();
+
+    return;
+}
+
+
+
+void DrawText( float x, float y, void* font, char* buf) 
+{
+    /* Set the color */
+    glColor3f(1.0, 1.0, 1.0);
+
+    /* Set the position */
+    glRasterPos2f(x, y);
+
+    /* Print the text */
+    glutBitmapString(font, buf);
+}
+
 
 
 
