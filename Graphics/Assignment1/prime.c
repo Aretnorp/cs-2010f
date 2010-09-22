@@ -23,10 +23,12 @@
 #define DEFAULT_FONT GLUT_BITMAP_8_BY_13
 #define BUF_SIZ 256
 
-#define MAX_INT 50
+#define MAX_INT 100
 #define MIN_INT 0
 
 #define POINT_SIZE 4.5
+
+#define RADIUS 0.8
 
 /**************************************************************************/
 /* Declare function prototypes
@@ -41,14 +43,14 @@ struct Point
 /* Declare function prototypes
  **************************************************************************/
 void Draw( void );
-void DrawLine( float , float , float, float );  /* Draws a line */
-void KeyboardFunc( unsigned char , int , int ); /* Handles Keyboard */
-void CalculatePoints( float r, int m, int n ); /* Calculate the Points */
+void DrawLine( float , float , float, float );
+void KeyboardFunc( unsigned char , int , int );
+void CalculatePoints( float r, int m, int n );
 void DrawPolygon( float r, int sides );
 void DrawStarPoints( struct Point *p, int m, int n );
 void DrawStarPolygon( struct Point *p, int m, int n );
 void DrawText( float x, float y, void* font, char* buf);
-void ClearMemory( void )
+void ClearMemory( void );
 
 int enableAll = FALSE;
 int enableShow = FALSE;
@@ -56,7 +58,6 @@ int enableRandom = FALSE;
 
 int m = 7;
 int n = 3;
-float r = 0.8;
 
 struct Point *p;
 
@@ -75,7 +76,7 @@ int main( int argc, char *argv[] )
     glutInitDisplayMode ( GLUT_DOUBLE );
 
     /* Create an application window of a certain size */
-    glutInitWindowSize( 600, 300 );
+    glutInitWindowSize( 850, 450 );
 
     /* Create an application window on the screen */
     glutCreateWindow( "Assignment #1: Star Polygon" );
@@ -90,7 +91,7 @@ int main( int argc, char *argv[] )
     atexit(ClearMemory);
 
     /* Calculate the Points */
-    CalculatePoints(r, m, n);
+    CalculatePoints(RADIUS, m, n);
 
     /* Turn over control to OpenGL */
     glutMainLoop();
@@ -122,7 +123,7 @@ void Draw( void )
     {
         /* Draw all the Star Polygons */
         for(i = 1; i < n; ++i)
-            if((n <= (m / 2)) && (CalculatePrime(m, n) == 1))
+            if((n <= (m / 2)) && (CalculatePrime(m, i) == 1))
             {
                 DrawStarPolygon(p, m, i);
                 starCount++;
@@ -149,7 +150,7 @@ void Draw( void )
 
         /* Draw the Circle */
         glColor3f(0.8, 0.8, 0.8);
-        DrawPolygon(r, 100);
+        DrawPolygon(RADIUS, 100);
         
         /* Draw the Points */
         DrawStarPoints(p, m, n);
@@ -169,24 +170,33 @@ void Draw( void )
     glEnd();
 
     /* Draw the M value */
-    sprintf(buf, "[M/m] m value: %d", m);
+    sprintf(buf, "[Mm] m value: %d", m);
     DrawText(-0.8, 0.8, DEFAULT_FONT, buf);
 
     /* Draw the N value */
-    sprintf(buf, "[N/n] n value: %d", n);
+    sprintf(buf, "[Nn] n value: %d", n);
     DrawText(-0.8, 0.7, DEFAULT_FONT, buf);
 
     /* Draw the Show All */
-    sprintf(buf, "[%c] Show All", enableAll ? 'x' : ' ');
+    sprintf(buf, "[%c] Show All Polygons    [a]", enableAll ? 'x' : ' ');
     DrawText(-0.8, 0.6, DEFAULT_FONT, buf);
 
     /* Draw the Show Additional */
-    sprintf(buf, "[%c] Show Graph", enableShow ? 'x' : ' ');
+    sprintf(buf, "[%c] Show Graph           [s]", enableShow ? 'x' : ' ');
     DrawText(-0.8, 0.5, DEFAULT_FONT, buf);
 
     /* Draw the Show Random Colors */
-    sprintf(buf, "[%c] Show Random Colors", enableRandom ? 'x' : ' ');
+    sprintf(buf, "[%c] Show Random Colors   [r]", enableRandom ? 'x' : ' ');
     DrawText(-0.8, 0.4, DEFAULT_FONT, buf);
+
+    /* Draw the Polygon Count */
+    if(starCount == 0)
+        DrawText(-0.8, 0.3, DEFAULT_FONT, "NO STAR POLYGONS");
+    else
+    {
+        sprintf(buf, "%d Star Polygon(s)", starCount);
+        DrawText(-0.8, 0.3, DEFAULT_FONT, buf);
+    }
 
     /* Flush the buffer */
     glutSwapBuffers(); 
@@ -318,7 +328,7 @@ void KeyboardFunc( unsigned char key, int x, int y )
         default: return; /* Exit if another key was pressed */
     }
     /* Recalculate Points */
-    CalculatePoints(r, m, n);
+    CalculatePoints(RADIUS, m, n);
 
     /* Redraw the Display */
     glutPostRedisplay();
