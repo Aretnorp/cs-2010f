@@ -34,7 +34,7 @@
 #define DEFAULT_FONT GLUT_BITMAP_8_BY_13
 #define BUF_SIZ 256
 
-#define MAX_INT 100
+#define MAX_INT 72
 #define MIN_INT 2
 
 #define POINT_SIZE 4.5
@@ -200,33 +200,44 @@ glEnable( GL_BLEND );
         glVertex2f(1.0, -1.0);
     glEnd();
 
+    /* Draw the Title */
+    DrawText(-0.5, 0.9, DEFAULT_FONT, "My Star Polygon");
+
+    /* Draw the Title Line */
+    glBegin(GL_LINES);
+        glColor3f(0.0, 0.0, 1.0);
+        glVertex2f(-0.8, 0.85);
+        glColor3f(1.0, 0.0, 0.0);
+        glVertex2f(0.8, 0.85);
+    glEnd();
+
     /* Draw the M value */
     sprintf(buf, "[Mm] m value: %d", m);
-    DrawText(-0.8, 0.8, DEFAULT_FONT, buf);
+    DrawText(-0.8, 0.7, DEFAULT_FONT, buf);
 
     /* Draw the N value */
     sprintf(buf, "[Nn] n value: %d", n);
-    DrawText(-0.8, 0.7, DEFAULT_FONT, buf);
+    DrawText(-0.8, 0.6, DEFAULT_FONT, buf);
 
     /* Draw the Show All */
     sprintf(buf, "[%c] Show All Polygons    [a]", enableAll ? 'x' : ' ');
-    DrawText(-0.8, 0.5, DEFAULT_FONT, buf);
+    DrawText(-0.8, 0.4, DEFAULT_FONT, buf);
 
     /* Draw the Show Additional */
     sprintf(buf, "[%c] Show Graph           [s]", enableShow ? 'x' : ' ');
-    DrawText(-0.8, 0.4, DEFAULT_FONT, buf);
+    DrawText(-0.8, 0.3, DEFAULT_FONT, buf);
 
     /* Draw the Show Random Colors */
     sprintf(buf, "[%c] Show Random Colors   [r]", enableRandom ? 'x' : ' ');
-    DrawText(-0.8, 0.1, DEFAULT_FONT, buf);
+    DrawText(-0.8, 0.2, DEFAULT_FONT, buf);
 
     /* Draw the Polygon Count */
     if(starCount == 0)
-        DrawText(-0.8, 0.3, DEFAULT_FONT, "NO STAR POLYGONS");
+        DrawText(-0.8, 0.0, DEFAULT_FONT, "NO STAR POLYGONS");
     else
     {
         sprintf(buf, "%d Star Polygon(s)", starCount);
-        DrawText(-0.8, 0.3, DEFAULT_FONT, buf);
+        DrawText(-0.8, 0.0, DEFAULT_FONT, buf);
     }
 
     /* Flush the buffer */
