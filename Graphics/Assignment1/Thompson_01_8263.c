@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename:  star.c
+ *       Filename:  Thompson_01_8263.c
  *
  *    Description:  Provides an interface to create Star Polygons
  *
@@ -140,8 +140,8 @@ void Draw( void )
     /* Clear the screen ... */
     glClear( GL_COLOR_BUFFER_BIT );
 
-/* Enable smoothing (not multisampling sadly) */
-glEnable( GL_BLEND );
+    /* Enable smoothing (not multisampling sadly) */
+    glEnable( GL_BLEND );
     glEnable( GL_LINE_SMOOTH );
     glEnable( GL_POINT_SMOOTH );
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
