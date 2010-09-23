@@ -1,15 +1,26 @@
-/* PROGRAM:  line.c 
-   AUTHOR:   Michael Anderson
-         Carolina Ayala 
-   MODIFIED BY: Cody Thompson
-   DATE:     13/09/10
-   PURPOSE:  Basic program in OpenGL 
-   LEVEL DIFFICULTY: Lab was easy (given)
-   OBJECTIVES: Familiarize yourself with OpenGL and GLUT
-*/
-/**************************************************************************/
-/* Include necessary header files
- **************************************************************************/
+/*
+ * =====================================================================================
+ *
+ *       Filename:  star.c
+ *
+ *    Description:  Provides an interface to create Star Polygons
+ *
+ *        Version:  1.0
+ *        Created:  09/22/2010 10:38:14 AM
+ *
+ *         Author:  Cody Thompson
+ *
+ *     Difficulty:  The most difficult aspect was the calculation for Star Polygons.
+ *                  It took an approximately an hour to come up with the calculation.
+ *                  Overall, the project was very easy.
+ *     Objectives:  To learn how to create a simple OpenGL application and understand
+ *                  how viewports and line drawing works.
+ * =====================================================================================
+ */
+
+/*-----------------------------------------------------------------------------
+ *  Include the headers
+ *-----------------------------------------------------------------------------*/
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include <math.h>
@@ -24,30 +35,32 @@
 #define BUF_SIZ 256
 
 #define MAX_INT 100
-#define MIN_INT 0
+#define MIN_INT 2
 
 #define POINT_SIZE 4.5
 
 #define RADIUS 0.8
 
-/**************************************************************************/
-/* Declare function prototypes
- **************************************************************************/
+
+/*-----------------------------------------------------------------------------
+ *  Structure Definitions
+ *-----------------------------------------------------------------------------*/
 struct Point
 {
     float x;
     float y;
 };
 
-/**************************************************************************/
-/* Declare function prototypes
- **************************************************************************/
+
+/*-----------------------------------------------------------------------------
+ *  Function Definitions
+ *-----------------------------------------------------------------------------*/
 void Draw( void );
 void DrawLine( float , float , float, float );
 void KeyboardFunc( unsigned char , int , int );
 void CalculatePoints( float r, int m, int n );
 void DrawPolygon( float r, int sides );
-void DrawStarPoints( struct Point *p, int m, int n );
+void DrawStarPoints( struct Point *p, int m );
 void DrawStarPolygon( struct Point *p, int m, int n );
 void DrawText( float x, float y, void* font, char* buf);
 void ClearMemory( void );
@@ -61,9 +74,11 @@ int n = 3;
 
 struct Point *p;
 
-/**************************************************************************/
-/* main: all initialization and callback registration.
- **************************************************************************/
+
+/*-----------------------------------------------------------------------------
+ *  Main Function
+ *  Initiates the graphics buffer, creates the window and CalculatePoints
+ *-----------------------------------------------------------------------------*/
 int main( int argc, char *argv[] )
 {
     /* Seed the random number generator */
@@ -99,12 +114,23 @@ int main( int argc, char *argv[] )
     return( 0 );  /* NOTE: this is here only for ANSI requirements */
 }
 
+
+/*-----------------------------------------------------------------------------
+ *  ClearMemory
+ *  Clears the dynamically allocated memory at close
+ *-----------------------------------------------------------------------------*/
 void ClearMemory( void )
 {
     /* Clear dynamically allocated memory */
     free(p);
 }
 
+
+/*-----------------------------------------------------------------------------
+ *  Draw
+ *  The Draw function is the main loop for the Graphics process. Draws each
+ *  viewport and the lines within them
+ *-----------------------------------------------------------------------------*/
 void Draw( void )
 {
     char buf[BUF_SIZ];
@@ -114,8 +140,14 @@ void Draw( void )
     /* Clear the screen ... */
     glClear( GL_COLOR_BUFFER_BIT );
 
+/* Enable smoothing (not multisampling sadly) */
+glEnable( GL_BLEND );
+    glEnable( GL_LINE_SMOOTH );
+    glEnable( GL_POINT_SMOOTH );
+    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+
     /* Resize the viewport */
-    glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH) * 0.7, 
+    glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH) * 0.7,
                      glutGet(GLUT_WINDOW_HEIGHT));
 
     /* Draw the Star Polygons */
@@ -138,13 +170,12 @@ void Draw( void )
     }
     else
         /* Issue Text regarding Polygon */
-        DrawText(-0.5, -0.75, DEFAULT_FONT, "Star Polygon can not be drawn!");
+        DrawText(-0.8, -0.9, DEFAULT_FONT, "Star Polygon can not be drawn!");
 
     /* Draw the additional objects */
     if(enableShow)
     {
         /* Draw the Cartesian plane */
-        glColor3f(0.75, 0.75, 0.75);
         DrawLine(-1.0, 0.0, 1.0, 0.0);
         DrawLine(0.0, -1.0, 0.0, 1.0);
 
@@ -153,7 +184,7 @@ void Draw( void )
         DrawPolygon(RADIUS, 100);
         
         /* Draw the Points */
-        DrawStarPoints(p, m, n);
+        DrawStarPoints(p, m);
     }
 
     /* Draw the ViewPort */
@@ -179,15 +210,15 @@ void Draw( void )
 
     /* Draw the Show All */
     sprintf(buf, "[%c] Show All Polygons    [a]", enableAll ? 'x' : ' ');
-    DrawText(-0.8, 0.6, DEFAULT_FONT, buf);
+    DrawText(-0.8, 0.5, DEFAULT_FONT, buf);
 
     /* Draw the Show Additional */
     sprintf(buf, "[%c] Show Graph           [s]", enableShow ? 'x' : ' ');
-    DrawText(-0.8, 0.5, DEFAULT_FONT, buf);
+    DrawText(-0.8, 0.4, DEFAULT_FONT, buf);
 
     /* Draw the Show Random Colors */
     sprintf(buf, "[%c] Show Random Colors   [r]", enableRandom ? 'x' : ' ');
-    DrawText(-0.8, 0.4, DEFAULT_FONT, buf);
+    DrawText(-0.8, 0.1, DEFAULT_FONT, buf);
 
     /* Draw the Polygon Count */
     if(starCount == 0)
@@ -205,6 +236,11 @@ void Draw( void )
 }
 
 
+/*-----------------------------------------------------------------------------
+ *  CalculatePoints
+ *  Calculates the Points around a given r for a given m and n. Splits a
+ *  circle into a used radius. Used with a StarPolygon algorithm.
+ *-----------------------------------------------------------------------------*/
 void CalculatePoints( float r, int m, int n )
 {
     float angle;
@@ -231,12 +267,18 @@ void CalculatePoints( float r, int m, int n )
     }
 }
 
+
+/*-----------------------------------------------------------------------------
+ *  DrawStarPolygon
+ *  Creates a StarPolygon using a given arrays of Points for m sides and
+ *  n divisions
+ *-----------------------------------------------------------------------------*/
 void DrawStarPolygon( struct Point *p, int m, int n )
 {
     int i, j;
 
     /* Set the Default Color */
-    glColor3f(1.0, 1.0, 1.0);
+    glColor3f(0.5, 0.5, 0.5);
 
     /* Begin drawing a Strip of Lines */
     glBegin( GL_LINE_STRIP );
@@ -259,7 +301,12 @@ void DrawStarPolygon( struct Point *p, int m, int n )
     glEnd();
 }
 
-void DrawStarPoints( struct Point *p, int m, int n )
+
+/*-----------------------------------------------------------------------------
+ *  DrawStarPoints
+ *  Draws each vertex based on the provided struct point P
+ *-----------------------------------------------------------------------------*/
+void DrawStarPoints( struct Point *p, int m )
 {
     int i = 0;
 
@@ -279,6 +326,11 @@ void DrawStarPoints( struct Point *p, int m, int n )
     glEnd();
 }
 
+
+/*-----------------------------------------------------------------------------
+ *  KeyboardFunc
+ *  Handles the keyboard input for each of the various buttons
+ *-----------------------------------------------------------------------------*/
 void KeyboardFunc( unsigned char key, int x, int y )
 {
     /* Determine which key is pressed */
@@ -334,10 +386,16 @@ void KeyboardFunc( unsigned char key, int x, int y )
     glutPostRedisplay();
 }
 
+
+/*-----------------------------------------------------------------------------
+ *  DrawLine
+ *  Draws a line at two given points
+ *-----------------------------------------------------------------------------*/
 void DrawLine( float x0, float y0, 
                float x1, float y1 )
 {
     /* Draw a line  */
+    glColor3f(0.75, 0.75, 0.75);
     glBegin( GL_LINES );
         glVertex2f( x0, y0 );
         glVertex2f( x1, y1 );
@@ -346,12 +404,18 @@ void DrawLine( float x0, float y0,
     return;
 }
 
+
+/*-----------------------------------------------------------------------------
+ *  DrawPolygon
+ *  Draws a polygon with a given sides and radius
+ *-----------------------------------------------------------------------------*/
 void DrawPolygon( float r, int sides ) 
 {
     float inc = (2 * M_PI / sides);
     float i = 0.0f;
 
     /* Draw a line  */
+    glColor3f(1.0, 1.0, 1.0);
     glBegin( GL_LINE_LOOP );
         for(i = 0; i <= 2 * M_PI; i += inc)
             glVertex2f(r * cos(i), r * sin(i));
@@ -361,11 +425,15 @@ void DrawPolygon( float r, int sides )
 }
 
 
-
+/*-----------------------------------------------------------------------------
+ *  DrawText
+ *  Draws a set of text using the GLUT bitmap String for a location at x and
+ *  y for a set font and buf
+ *-----------------------------------------------------------------------------*/
 void DrawText( float x, float y, void* font, char* buf) 
 {
     /* Set the color */
-    glColor3f(1.0, 1.0, 1.0);
+    glColor3f(0.0, 0.7, 0.0);
 
     /* Set the position */
     glRasterPos2f(x, y);
@@ -375,11 +443,10 @@ void DrawText( float x, float y, void* font, char* buf)
 }
 
 
-
-
-/**************************************************************************/
-/* A function which calculates coprime between to ints
- **************************************************************************/
+/*-----------------------------------------------------------------------------
+ *  CalculatePrime
+ *  Calculates the coprime number between m and n using Eucidlean algorithm
+ *-----------------------------------------------------------------------------*/
 int CalculatePrime(int m, int n)
 {
     while(n != 0)
@@ -387,6 +454,6 @@ int CalculatePrime(int m, int n)
         int t = n;
         n = m % n;
         m = t;
-    } 
+    }
     return m;
 }
