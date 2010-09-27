@@ -1,17 +1,14 @@
 /*
  * =====================================================================================
  *
- *       Filename:  client.c
+ *                 Student Name: Cody Thompson
+ *             Algonquin E-Mail: thom0731
+ *               Student Number: 040 584 188
+ *                Course Number: CST8165
+ *                  Lab Section: 010
+ *               Professor Name: David Watson
+ *  Assignment Name/Number/Date: Lab 1 due September 27th, 2010
  *
- *    Description:  
- *
- *        Version:  1.0
- *        Created:  09/27/2010 08:05:23 AM
- *       Revision:  none
- *       Compiler:  gcc
- *
- *         Author:  YOUR NAME (), 
- *        Company:  
  *
  * =====================================================================================
  */
@@ -28,10 +25,16 @@
 #define ADDRESS 1
 #define PORT 2
 
+/* Instantiates the 
+ * @author Cody Thompson
+ * @param argc 
+ */
 int main(int argc, char* argv[])
 {
     int sockfd; /* Socket File Descriptor */
-    int bytesSent; /* Bytes Sent */
+    int bytesSent = 0; /* Bytes Sent */
+    int status; /* Placeholder for status return */
+    int length; /* Holds the length of the data */
     struct addrinfo hints, *res; /* Network Structures */
     char buf[BUF_SIZ]; /* Buffer */
     char* address;
@@ -43,8 +46,9 @@ int main(int argc, char* argv[])
         fprintf(stderr, "No port provided!\n");
         fprintf(stderr, "Proper usage:\n");
         fprintf(stderr, "   ./client address portNumber\n");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
+
     /* Define the parameters */
     address = argv[ADDRESS];
     port = argv[PORT];
@@ -53,11 +57,10 @@ int main(int argc, char* argv[])
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE;
-    if(getaddrinfo(address, "1024", &hints, &res) != 0)
+    if((status = getaddrinfo(address, "1024", &hints, &res) != 0))
     {
         fprintf(stderr, "getaddrinfo failed!\n");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
     
     /* Create the socket */
@@ -65,11 +68,19 @@ int main(int argc, char* argv[])
             res->ai_protocol);
 
     /* Connect to the server */
-    connect(sockfd, res->ai_addr, res->ai_addrlen);
+    if((status = connect(sockfd, res->ai_addr, 
+        res->ai_addrlen) != 0))
+    {
+        fprintf(stderr, "Could not connect!\n");
+        exit(EXIT_FAILURE);
+    }
 
     /* Send the message */
     sprintf(buf, "Hello workd!\n");
-    bytesSent += send(sockfd, buf, strlen(buf), 0);
+    length = strlen(buf);
+    bytesSent = 0;
+    while(bytesSent < length)
+        bytesSent += send(sockfd, buf + bytesSent, strlen(buf), 0);
 
     /* Close the socket */
     close(sockfd);
@@ -80,6 +91,5 @@ int main(int argc, char* argv[])
     /* Show the number of bytes sent */
     printf("Number of bytes sent: %d\n", bytesSent);
 
-    /* Exit the function */
     return 0;
 }
