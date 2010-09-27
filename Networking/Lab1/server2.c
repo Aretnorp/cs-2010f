@@ -12,6 +12,10 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+#define BUF_SIZ 16
+
+#define FILENAME "Lab_01_a"
+
 void dostuff(int); /* function prototype */
 void error(char *msg)
 {
@@ -34,19 +38,30 @@ int main(int argc, char *argv[])
      if (sockfd < 0) 
         error("ERROR opening socket");
 
-     bzero((char *) &serv_addr, sizeof(serv_addr));
+     /* Clear the memory */
+     memset(&serv_addr, 0, sizeof(serv_addr));
+
+     /* Set the port number */
      portno = atoi(argv[1]);
+
+     /* Set the struct */
      serv_addr.sin_family = AF_INET;
      serv_addr.sin_addr.s_addr = INADDR_ANY;
      serv_addr.sin_port = htons(portno);
+
+     /* Bind to the Port and Listen on it */
      if (bind(sockfd, (struct sockaddr *) &serv_addr,
               sizeof(serv_addr)) < 0) 
               error("ERROR on binding");
      listen(sockfd,5);
+
+     /* Incoming Client Request */
      clilen = sizeof(cli_addr);
-     while (1) {
-         newsockfd = accept(sockfd, 
-               (struct sockaddr *) &cli_addr, &clilen);
+
+    /* Receive the text */
+     while (2) {
+     newsockfd = accept(sockfd, 
+        (struct sockaddr *) &cli_addr, &clilen);
          if (newsockfd < 0) 
              error("ERROR on accept");
          pid = fork();
@@ -69,13 +84,24 @@ int main(int argc, char *argv[])
  *****************************************/
 void dostuff (int sock)
 {
-   int n;
-   char buffer[256];
-      
-   bzero(buffer,256);
-   n = read(sock,buffer,255);
-   if (n < 0) error("ERROR reading from socket");
-   printf("Here is the message: %s\n",buffer);
-   n = write(sock,"I got your message",18);
-   if (n < 0) error("ERROR writing to socket");
+    FILE* f;
+    int readBytes;
+    char buf[BUF_SIZ];
+
+    /* Empty the Memory */
+    memset(buf, 0, sizeof(buf));
+
+    /* Open the file */
+    f = fopen(FILENAME, "wb");
+
+    /* Read in a number of digits */
+    while((readBytes = read(sock,buf, BUF_SIZ - 1)) > 0)
+    {
+        printf("Here is the message: %s\n",buf);
+        
+        fwrite(buf, 1, readBytes, f);
+
+        readBytes = 0;
+    }
+    fclose(f);
 }
