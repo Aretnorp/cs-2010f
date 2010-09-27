@@ -20,14 +20,16 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
-#define BUF_SIZ 256
+#define BUF_SIZ 16
 
 #define ADDRESS 1
 #define PORT 2
+#define FILENAME 3
 
 /* Instantiates the 
  * @author Cody Thompson
- * @param argc 
+ * @param argc Number of arguments sent
+ * @param argv Pointer to the array of arguments
  */
 int main(int argc, char* argv[])
 {
@@ -39,19 +41,21 @@ int main(int argc, char* argv[])
     char buf[BUF_SIZ]; /* Buffer */
     char* address;
     char* port;
+    char* file;
 
     /* Check the parameters */
-    if(argc < 3)
+    if(argc < 4)
     {
         fprintf(stderr, "No port provided!\n");
         fprintf(stderr, "Proper usage:\n");
-        fprintf(stderr, "   ./client address portNumber\n");
+        fprintf(stderr, "   ./client address portNumber file\n");
         exit(EXIT_FAILURE);
     }
 
     /* Define the parameters */
     address = argv[ADDRESS];
     port = argv[PORT];
+    file = argv[FILENAME];
 
     /* Setup the structures */
     memset(&hints, 0, sizeof(hints));
@@ -76,11 +80,14 @@ int main(int argc, char* argv[])
     }
 
     /* Send the message */
+    /*
     sprintf(buf, "Hello workd!\n");
     length = strlen(buf);
     bytesSent = 0;
     while(bytesSent < length)
         bytesSent += send(sockfd, buf + bytesSent, strlen(buf), 0);
+    */
+    bytesSent = sendFile(sockfd, file);
 
     /* Close the socket */
     close(sockfd);
@@ -92,4 +99,36 @@ int main(int argc, char* argv[])
     printf("Number of bytes sent: %d\n", bytesSent);
 
     return 0;
+}
+int sendFile(int sockfd, char* file)
+{
+    FILE* f;
+    int totalSent;
+    int bytesSent;
+    int fileRead;
+    char buf[BUF_SIZ];
+
+    /* Open the file */
+    if((f = fopen(file, "rb")) == NULL)
+    {
+        fprintf(stderr, "Could not open file %s\n", file);
+        exit(EXIT_FAILURE);
+    }
+
+    /* Read the file */
+    totalSent = 0;
+    while((fileRead = fread(buf, 1, BUF_SIZ - 1, f) != 0))
+    {
+        bytesSent = 0;
+
+        /* Send the file */
+        while(bytesSent < fileRead)
+            bytesSent += send(sockfd, buf + bytesSent, strlen(buf), 0);
+
+        /* Add to the total */
+        totalSent += bytesSent;
+    }
+
+    /* Return the number of bytes */
+    return totalSent;
 }
