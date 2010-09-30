@@ -25,7 +25,7 @@
 #define ADDRESS 1
 #define PORT 2
 
-/* Instantiates the 
+/** Instantiates the network send
  * @author Cody Thompson
  * @param argc Number of arguments sent
  * @param argv Pointer to the array of arguments
