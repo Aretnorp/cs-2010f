@@ -1,0 +1,16 @@
+BEGIN Lab_01_a_Server port
+    CREATE socket
+    BIND socket TO port
+    LISTEN socket
+    FOR EACH connection
+        READ socket INTO result
+        PRINT result
+    END FOR
+END
+
+BEGIN Lab_01_a_Client ip, port
+    CREATE socket
+    CONNECT socket TO ip, port
+    WRITE "hello workd!" TO socket
+    CLOSE socket
+END

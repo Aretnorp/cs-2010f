@@ -1,0 +1,25 @@
+TEST PLAN
+
+Lab_01_a
+
+Test 1:
+Ensure that the parameters are properly handled by the program.
+    Steps:
+    [ ] Invalid port
+    [ ] Too many arguments
+    [ ] Too few arguments
+    [ ] Port less than 1024
+    [ ] Port greater than 65535
+    [ ] Valid port
+
+    Client Only:
+    [ ] Invalid IP
+    [ ] Valid IP
+
+Test 2:
+Ensure that the Client is able to send the message to the server
+    Steps:
+    [ ] Run the server with port 1024
+    [ ] Run the client with 127.0.0.1 and port 1024
+    [ ] Confirm the output of the command
+    [ ] Kill the server
