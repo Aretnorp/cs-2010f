@@ -27,7 +27,7 @@
  *                     The second T shown is the one that has a recessed inner side,
  *                     making the top larger and sticking out. The primary difference
  *                     is that a few extra calls to various primitives were used to
- *                     texture the underside of it. In all cases, I used sets of
+ *                     model the underside of it. In all cases, I used sets of
  *                     primitives and did not combine cubes.
  * =====================================================================================
  */
@@ -68,7 +68,7 @@ char letter = 't';
 
 /*-----------------------------------------------------------------------------
  *  Main Function
- *  Initiates the graphics buffer, creates the window and CalculatePoints
+ *  Initiates the graphics buffer, creates the window and calls InitShapes
  *-----------------------------------------------------------------------------*/
 int main( int argc, char *argv[] )
 {
@@ -189,7 +189,6 @@ void Reshape( int width, int height )
 
 }
 
-
 /*-----------------------------------------------------------------------------
  *  ClearMemory
  *  Clears the dynamically allocated memory at close
@@ -200,11 +199,10 @@ void ClearMemory( void )
     glDeleteLists( tLists, NUM_LISTS );
 }
 
-
 /*-----------------------------------------------------------------------------
  *  Draw
- *  The Draw function is the main loop for the Graphics process. Draws each
- *  viewport and the lines within them
+ *  The Draw function is the main loop for the Graphics process. Draws the
+ *  letter by using the CallList and handles rotating the scene
  *-----------------------------------------------------------------------------*/
 void Draw( void )
 {
