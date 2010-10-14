@@ -12,6 +12,7 @@
  *     Difficulty:  The most difficult aspect was creating the proper perspective. Due
  *                  to the differences between the Projection Matrix and ModelView
  *                  Matrix, I had to learn how to do the proper implementation.
+ *                  The level of difficulty was: 2
  *     Objectives:  Create an object in 3D using GL Primitives. Render the object in
  *                  3D. Use a proper perspective that shows the shape as a 3D object.
  *       Comments:  Two things that need to be noted:
