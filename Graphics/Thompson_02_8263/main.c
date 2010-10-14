@@ -1,20 +1,34 @@
 /*
  * =====================================================================================
  *
- *       Filename:  Thompson_02_8263.c
+ *       Filename:  main.c
  *
- *    Description:  Provides an interface to create Star Polygons
+ *    Description:  Draws a Letter in 3D
  *
  *        Version:  1.0
- *        Created:  09/22/2010 10:38:14 AM
  *
  *         Author:  Cody Thompson
  *
- *     Difficulty:  The most difficult aspect was the calculation for Star Polygons.
- *                  It took an approximately an hour to come up with the calculation.
- *                  Overall, the project was very easy.
- *     Objectives:  To learn how to create a simple OpenGL application and understand
- *                  how viewports and line drawing works.
+ *     Difficulty:  The most difficult aspect was creating the proper perspective. Due
+ *                  to the differences between the Projection Matrix and ModelView
+ *                  Matrix, I had to learn how to do the proper implementation.
+ *     Objectives:  Create an object in 3D using GL Primitives. Render the object in
+ *                  3D. Use a proper perspective that shows the shape as a 3D object.
+ *       Comments:  Two things that need to be noted:
+ *                  A) I've used multi-sampling to round the edges of the shape
+ *                     and this method is much more obvious/simple than using the
+ *                     FSAA of prior times (GLUT_MULTISAMPLE on Window, and
+ *                     glEnable(GL_MULTISAMPLE))
+ *                  B) The reason I use the variable 'letter' is because I've created
+ *                     two displays lists for two different variants on the T. My
+ *                     first T used a simple set of 16 vertices and created primitives
+ *                     between them. This is more of a basic T and didn't take into
+ *                     account any depth on the shape in the letter that was provided.
+ *                     The second T shown is the one that has a recessed inner side,
+ *                     making the top larger and sticking out. The primary difference
+ *                     is that a few extra calls to various primitives were used to
+ *                     texture the underside of it. In all cases, I used sets of
+ *                     primitives and did not combine cubes.
  * =====================================================================================
  */
 
@@ -29,10 +43,10 @@
 #include <unistd.h>
 #include <malloc.h>
 
+#include "letter.h"
+
 #define TRUE 1
 #define FALSE 0
-
-#define NUM_LISTS 2
 
 /*-----------------------------------------------------------------------------
  *  Function Definitions
@@ -41,7 +55,6 @@ void Draw( void );
 void Reshape( int, int );
 void Keyboard( unsigned char , int , int );
 void ClearMemory( void );
-void InitShapes( void );
 
 /*-----------------------------------------------------------------------------
  *  Variable Definitions
@@ -50,7 +63,6 @@ GLfloat rotX = 0;
 GLfloat rotY = 0;
 int radius = 250;
 
-GLuint tLists;
 GLenum mode = GL_FILL;
 char letter = 't';
 
@@ -64,7 +76,7 @@ int main( int argc, char *argv[] )
     glutInit( &argc, argv );
 
     /* Initialize the display mode */
-    glutInitDisplayMode ( GLUT_DOUBLE | GLUT_DEPTH );
+    glutInitDisplayMode ( GLUT_DOUBLE | GLUT_DEPTH | GLUT_MULTISAMPLE );
 
     /* Create an application window of a certain size */
     glutInitWindowSize( 600, 600 );
@@ -84,6 +96,7 @@ int main( int argc, char *argv[] )
     /* Enable GL Properties */
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_MULTISAMPLE);
 
     /* Register Exit Handler */
     atexit(ClearMemory);
@@ -149,8 +162,9 @@ void Keyboard( unsigned char key, int x, int y )
 }
 
 /*-----------------------------------------------------------------------------
- *  Keyboard
- *  Handles the keyboard input for each of the various buttons
+ *  Reshape
+ *  Handles the perspective resize etc when the screen changes in size from
+ *  dragging and dropping.
  *-----------------------------------------------------------------------------*/
 void Reshape( int width, int height )
 {
@@ -175,146 +189,6 @@ void Reshape( int width, int height )
 
 }
 
-/*-----------------------------------------------------------------------------
- *  Keyboard
- *  Handles the keyboard input for each of the various buttons
- *-----------------------------------------------------------------------------*/
-void InitShapes ( )
-{
-    /* Create a List */
-    tLists = glGenLists(NUM_LISTS);
-
-    /* Define the List */
-    glNewList( 't', GL_COMPILE );
-
-        /* Draw the Front Face */
-        glColor3f(1.0, 0.0, 0.0);
-        glBegin( GL_POLYGON );
-            glVertex3f( -10.0, 30.0, 12.5 );
-            glVertex3f( -10.0,-50.0, 12.5 );
-            glVertex3f(  10.0,-50.0, 12.5 );
-            glVertex3f(  10.0, 30.0, 12.5 );
-            glVertex3f(  37.5, 30.0, 12.5 );
-            glVertex3f(  37.5, 50.0, 12.5 );
-            glVertex3f( -37.5, 50.0, 12.5 );
-            glVertex3f( -37.5, 50.0, 12.5 );
-            glVertex3f( -37.5, 30.0, 12.5 );
-        glEnd( );
-
-        /* Draw the Back Face */
-        glColor3f(0.0, 1.0, 0.0);
-        glBegin( GL_POLYGON );
-            glVertex3f(  10.0, 30.0,-12.5 );
-            glVertex3f(  10.0,-50.0,-12.5 );
-            glVertex3f( -10.0,-50.0,-12.5 );
-            glVertex3f( -10.0, 30.0,-12.5 );
-            glVertex3f( -37.5, 30.0,-12.5 );
-            glVertex3f( -37.5, 50.0,-12.5 );
-            glVertex3f(  37.5, 50.0,-12.5 );
-            glVertex3f(  37.5, 30.0,-12.5 );
-        glEnd( );
-
-        /* Draw the Inner Sides */
-        glColor3f(0.0, 0.0, 1.0);
-        glBegin( GL_QUAD_STRIP );
-            glVertex3f(  37.5, 50.0,-12.5 );
-            glVertex3f(  37.5, 50.0, 12.5 );
-            glVertex3f(  37.5, 30.0,-12.5 );
-            glVertex3f(  37.5, 30.0, 12.5 );
-            glVertex3f(  10.0, 30.0,-12.5 );
-            glVertex3f(  10.0, 30.0, 12.5 );
-            glVertex3f(  10.0,-50.0,-12.5 );
-            glVertex3f(  10.0,-50.0, 12.5 );
-            glVertex3f( -10.0,-50.0,-12.5 );
-            glVertex3f( -10.0,-50.0, 12.5 );
-            glVertex3f( -10.0, 30.0,-12.5 );
-            glVertex3f( -10.0, 30.0, 12.5 );
-            glVertex3f( -37.5, 30.0,-12.5 );
-            glVertex3f( -37.5, 30.0, 12.5 );
-            glVertex3f( -37.5, 50.0,-12.5 );
-            glVertex3f( -37.5, 50.0, 12.5 );
-            glVertex3f(  37.5, 50.0,-12.5 );
-            glVertex3f(  37.5, 50.0, 12.5 );
-        glEnd( );
-
-    /* End the List */
-    glEndList( );
-
-    /* Define the List */
-    glNewList( 'T', GL_COMPILE );
-        /* Draw the front faces */
-        glColor3f(1.0, 0.0, 0.0);
-        glBegin( GL_POLYGON );
-            glVertex3f( -10.0, 30.0, 8.0 );
-            glVertex3f( -10.0,-50.0, 8.0 );
-            glVertex3f(  10.0,-50.0, 8.0 );
-            glVertex3f(  10.0, 30.0, 8.0 );
-        glEnd( );
-        glBegin( GL_POLYGON );
-            glVertex3f( -37.5, 50.0, 12.5 );
-            glVertex3f( -37.5, 30.0, 12.5 );
-            glVertex3f(  37.5, 30.0, 12.5 );
-            glVertex3f(  37.5, 50.0, 12.5 );
-        glEnd( );
-
-        /* Draw the back faces */
-        glColor3f(0.0, 1.0, 0.0);
-        glBegin( GL_POLYGON );
-            glVertex3f(  10.0, 30.0,-8.0 );
-            glVertex3f(  10.0,-50.0,-8.0 );
-            glVertex3f( -10.0,-50.0,-8.0 );
-            glVertex3f( -10.0, 30.0,-8.0 );
-        glEnd( );
-        glBegin( GL_POLYGON );
-            glVertex3f(  37.5, 50.0,-12.5 );
-            glVertex3f(  37.5, 30.0,-12.5 );
-            glVertex3f( -37.5, 30.0,-12.5 );
-            glVertex3f( -37.5, 50.0,-12.5 );
-        glEnd( );
-
-        /* Draw the Top of the T */
-        glColor3f(0.0, 0.0, 1.0);
-        glBegin( GL_QUAD_STRIP );
-            glVertex3f( -37.5, 30.0,-12.5 );
-            glVertex3f( -37.5, 30.0, 12.5 );
-            glVertex3f( -37.5, 50.0,-12.5 );
-            glVertex3f( -37.5, 50.0, 12.5 );
-            glVertex3f(  37.5, 50.0,-12.5 );
-            glVertex3f(  37.5, 50.0, 12.5 );
-            glVertex3f(  37.5, 30.0,-12.5 );
-            glVertex3f(  37.5, 30.0, 12.5 );
-        glEnd( );
-
-        /* Draw the Bottom of the T */
-        glColor3f(0.0, 0.0, 1.0);
-        glBegin( GL_QUAD_STRIP );
-            glVertex3f(  10.0, 30.0,-8.0 );
-            glVertex3f(  10.0, 30.0, 8.0 );
-            glVertex3f(  10.0,-50.0,-8.0 );
-            glVertex3f(  10.0,-50.0, 8.0 );
-            glVertex3f( -10.0,-50.0,-8.0 );
-            glVertex3f( -10.0,-50.0, 8.0 );
-            glVertex3f( -10.0, 30.0,-8.0 );
-            glVertex3f( -10.0, 30.0, 8.0 );
-        glEnd( );
-
-        /* Draw the Underside of the T */
-        glColor3f(0.0, 0.0, 1.0);
-        glBegin( GL_QUAD_STRIP );
-            glVertex3f( -37.5, 30.0,-12.5 );
-            glVertex3f( -10.0, 30.0,-8.0 );
-            glVertex3f( -37.5, 30.0, 12.5 );
-            glVertex3f( -10.0, 30.0, 8.0 );
-            glVertex3f(  37.5, 30.0, 12.5 );
-            glVertex3f(  10.0, 30.0, 8.0 );
-            glVertex3f(  37.5, 30.0,-12.5 );
-            glVertex3f(  10.0, 30.0,-8.0 );
-            glVertex3f( -37.5, 30.0,-12.5 );
-            glVertex3f( -10.0, 30.0,-8.0 );
-        glEnd( );
-    /* End the List */
-    glEndList( );
-}
 
 /*-----------------------------------------------------------------------------
  *  ClearMemory
@@ -338,11 +212,9 @@ void Draw( void )
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
     /* Do the Rotation */
-    
     glLoadIdentity();
     glRotatef( rotX, 1.0, 0.0, 0.0 );
     glRotatef( rotY, 0.0, 1.0, 0.0 );
-    
 
     /* Set the Polygon Mode */
     glPolygonMode(GL_FRONT, mode);
