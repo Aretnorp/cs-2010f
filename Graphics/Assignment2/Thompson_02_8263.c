@@ -46,8 +46,8 @@ void InitShapes( void );
 /*-----------------------------------------------------------------------------
  *  Variable Definitions
  *-----------------------------------------------------------------------------*/
-int theta = 0;
-int beta = 0;
+GLfloat rotX = 0;
+GLfloat rotY = 0;
 int radius = 250;
 
 GLuint tLists;
@@ -108,24 +108,24 @@ void Keyboard( unsigned char key, int x, int y )
     {
         /* Right */
         case 'd':
-            theta++; break;
+            rotY++; break;
         case 'D':
-            theta += 10; break;
+            rotY += 10; break;
         /* Left */
         case 'a':
-            theta--; break;
+            rotY--; break;
         case 'A':
-            theta -= 10; break;
+            rotY -= 10; break;
         /* Up */
         case 'w':
-            beta++; break;
+            rotX++; break;
         case 'W':
-            beta += 10; break;
+            rotX += 10; break;
         /* Down */
         case 's':
-            beta--; break;
+            rotX--; break;
         case 'S':
-            beta -= 10; break;
+            rotX -= 10; break;
         /* Wireframe Modes */
         case 'F':
             mode = GL_FILL; break;
@@ -164,16 +164,15 @@ void Reshape( int width, int height )
     /* Configure Perspective to proper aspect ratio */
     gluPerspective( 45.0, width / height, 1.0, 500 );
 
+    /* Look at Origin from specified angle */
+    gluLookAt(0.0, 0.0, radius,
+              0.0, 0.0, 0.0, /* Look at Center */
+              0.0, 1.0, 0.0); /* Look up */
+
     /* Change to ModelView Matrix */
     glMatrixMode( GL_MODELVIEW );
     glLoadIdentity();
 
-    /* Look at Origin from specified angle */
-    gluLookAt((sin(theta * (M_PI / 180)) * radius),
-              0.0, /* Whoopsie */
-              (cos(theta * (M_PI / 180)) * radius),
-              0.0, 0.0, 0.0, /* Look at Center */
-              0.0, 1.0, 0.0); /* Look up */
 }
 
 /*-----------------------------------------------------------------------------
@@ -337,6 +336,13 @@ void Draw( void )
 {
     /* Clear the screen ... */
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+    /* Do the Rotation */
+    
+    glLoadIdentity();
+    glRotatef( rotX, 1.0, 0.0, 0.0 );
+    glRotatef( rotY, 0.0, 1.0, 0.0 );
+    
 
     /* Set the Polygon Mode */
     glPolygonMode(GL_FRONT, mode);
