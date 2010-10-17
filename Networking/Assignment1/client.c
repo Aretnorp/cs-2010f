@@ -111,6 +111,9 @@ int main(int argc, char* argv[])
     }
     printf("\n\n\n");
 
+    /* Close the socket */
+    close(sockfd);
+
     /* Post the Calendar */
     sockfd = CreateSocket(ADDRESS, PORT);
     sprintf(buf, POST_REQUEST "Cookie: %s\r\n\r\n%s\r\n\r\n",
@@ -131,6 +134,9 @@ int main(int argc, char* argv[])
         printf("%s\n", buf);
     }
     printf("\n\n\n");
+
+    /* Close the socket */
+    close(sockfd);
 
     return 0;
 }
