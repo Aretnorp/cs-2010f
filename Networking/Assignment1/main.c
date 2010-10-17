@@ -62,7 +62,8 @@ int main( void )
         chunk = curl_slist_append(chunk, "Host: online.algonquincollege.com");
         chunk = curl_slist_append(chunk, "Connection: close");
         chunk = curl_slist_append(chunk, "Accept: application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5");
-        chunk = curl_slist_append(chunk, "User-Agent: Mozilla/5.0 (X11; U; Linux x86_64; en-US) CST8165 Webot/1.0\r\nAccept-Encoding: gzip, deflate");
+        chunk = curl_slist_append(chunk, "User-Agent: Mozilla/5.0 (X11; U; Linux x86_64; en-US) "
+                                         "CST8165 Webot/1.0\r\nAccept-Encoding: gzip, deflate");
         chunk = curl_slist_append(chunk, "Accept-Language: en-US,en;q=0.8");
         chunk = curl_slist_append(chunk, "Accept-Charset: utf-8,*;q=0.3");
 
