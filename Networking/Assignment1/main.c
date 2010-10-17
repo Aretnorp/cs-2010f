@@ -74,30 +74,30 @@ int main( void )
 void InitBB9( CURL* curl )
 {
 #ifdef DEBUG
-        /* Enable the debugging function */
-        struct data config;
-        config.trace_ascii = 1;
-        curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, my_trace);
-        curl_easy_setopt(curl, CURLOPT_DEBUGDATA, &config);
-        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+    /* Enable the debugging function */
+    struct data config;
+    config.trace_ascii = 1;
+    curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, my_trace);
+    curl_easy_setopt(curl, CURLOPT_DEBUGDATA, &config);
+    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 #endif
 
-        /* Configure our specialized header */
-        struct curl_slist *chunk = NULL;
-        chunk = curl_slist_append(chunk, "Host: online.algonquincollege.com");
-        chunk = curl_slist_append(chunk, "Connection: close");
-        chunk = curl_slist_append(chunk, "Accept: application/xml,application/xhtml+xml,text/html;"
-                                         "q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5");
-        chunk = curl_slist_append(chunk, "User-Agent: Mozilla/5.0 (X11; U; Linux x86_64; en-US) "
-                                         "Cody T WebBot/1.0\r\nAccept-Encoding: gzip, deflate");
-        chunk = curl_slist_append(chunk, "Accept-Language: en-US,en;q=0.8");
-        chunk = curl_slist_append(chunk, "Accept-Charset: utf-8,*;q=0.3");
+    /* Configure our specialized header */
+    struct curl_slist *chunk = NULL;
+    chunk = curl_slist_append(chunk, "Host: online.algonquincollege.com");
+    chunk = curl_slist_append(chunk, "Connection: close");
+    chunk = curl_slist_append(chunk, "Accept: application/xml,application/xhtml+xml,text/html;"
+                                        "q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5");
+    chunk = curl_slist_append(chunk, "User-Agent: Mozilla/5.0 (X11; U; Linux x86_64; en-US) "
+                                        "Cody T WebBot/1.0\r\nAccept-Encoding: gzip, deflate");
+    chunk = curl_slist_append(chunk, "Accept-Language: en-US,en;q=0.8");
+    chunk = curl_slist_append(chunk, "Accept-Charset: utf-8,*;q=0.3");
 
-        /* Configure CURL to use special headers */
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+    /* Configure CURL to use special headers */
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 
-        /* Enable cookies */
-        curl_easy_setopt(curl, CURLOPT_COOKIEFILE, "");
+    /* Enable cookies */
+    curl_easy_setopt(curl, CURLOPT_COOKIEFILE, "");
 }
 
 /** WriteData
