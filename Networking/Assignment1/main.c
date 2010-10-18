@@ -164,11 +164,15 @@ size_t AppendBuffer( void* ptr, size_t size, size_t nmemb, void* data )
  *  @param f The file to read from and write too (must be read/write!)
  *  @return The number of bytes written, if any
  */
-int WriteData( FILE* f )
+int WriteData( char* fileName )
 {
     char buf[MAX_BUF_SIZ];
     crc inData, fileData;
     int length;
+    FILE* f;
+
+    /* Open the File */
+    f = OpenFile( fileName );
 
     /* Clear our buffer */
     memset(buf, '\0', MAX_BUF_SIZ);
@@ -187,8 +191,8 @@ int WriteData( FILE* f )
     length = 0;
     if(inData != fileData)
     {
-        printf("Updated data contained in file! Old CRC: %d, New CRC: %d\n",
-                fileData, inData);
+        printf("Updated data contained in %s! Old CRC: %d, New CRC: %d\n",
+                fileName, fileData, inData);
         //printf("Read:\n%s\n\n\n", buf);
         //printf("Writing:\n%s\n\n\n", g_buf);
 
@@ -197,7 +201,10 @@ int WriteData( FILE* f )
         length = fwrite(g_buf, 1, strlen(g_buf), f);
     }
     else
-        printf("Files checked, no changes were made!\n");
+        printf("%s checked, no changes were made!\n", fileName);
+
+    /* Close the File */
+    fclose(f);
 
     /* Return the number of bytes written */
     return length;
@@ -236,9 +243,6 @@ void PostData( CURL* curl, char* fileName, char* postString )
     /* Use the Module page to get Module Information */
     curl_easy_setopt(curl, CURLOPT_URL, URL MODULE);
     
-    /* Open the file */
-    f = OpenFile(fileName);
-
     /* Reset the global buffer */
     memset(g_buf, '\0', sizeof(g_buf));
 
@@ -250,10 +254,7 @@ void PostData( CURL* curl, char* fileName, char* postString )
     res = curl_easy_perform(curl);
 
     /* Compare the files */
-    WriteData( f );
-
-    /* Close the File */
-    fclose(f);
+    WriteData( fileName );
 }
 
 /** OpenFile
