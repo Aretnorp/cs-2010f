@@ -43,16 +43,13 @@ int main( int argc, char** argv )
 {
     CURL *curl; /* Main instance of CURL */
     CURLcode res; /* Return value of CURL */
-    FILE* annFile; /* File value of Announcements */
-    FILE* calFile; /* File value of Calendar */
+    FILE* loginFile; /* File value of Announcements */
     char* userName; /* The username that was given to the program */
     struct stat st; /* Structure to use for directory check */
 
     /* Run initialization functions */
     crcInit();
     curl = curl_easy_init( );
-
-
     if(curl)
     {
         /* Initialize our curl object */
@@ -78,13 +75,18 @@ int main( int argc, char** argv )
         /* Enter a Loop */
         for(;;)
         {
-            /* Setup our Write Function so it doesn't print */
-            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, IgnoreData);
+            /* Open the Login file */
+            loginFile = OpenFile(LOGIN_FILE);
+            curl_easy_setopt(curl, CURLOPT_WRITEDATA, loginFile);
 
             /* Post the Login Page */
             curl_easy_setopt(curl, CURLOPT_URL, URL LOGIN);
             curl_easy_setopt(curl, CURLOPT_POSTFIELDS, USER);
             res = curl_easy_perform(curl);
+
+            /* Close the Login file */
+            fclose(loginFile);
+            curl_easy_setopt(curl, CURLOPT_WRITEDATA, stdout);
 
             /* Post the Required Data */
             PostData(curl, CALENDAR_FILE, CALENDAR);
