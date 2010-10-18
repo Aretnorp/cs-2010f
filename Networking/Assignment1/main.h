@@ -50,6 +50,7 @@
 /* Constants for File Definitions */
 #define ANNOUNCEMENTS_FILE "announcements"
 #define CALENDAR_FILE "calendar"
+#define LOGIN_FILE "login"
 
 /* Constants for Application */
 #define APPLICATION "WebBot"
