@@ -1,0 +1,29 @@
+BEGIN webbot
+    GET username
+    GET password
+
+    OPEN connection TO blackboard's login
+    SEND username AND password TO blackboard's login
+    GET response
+    END connection
+
+    IF response CONTAINS "session_id"
+        GET session_id AS session_id IN response
+    ELSE
+        EXIT unable to login
+    END IF
+
+    FOR EACH module
+        OPEN connection TO blackboard's module
+        GET module
+        SEND session_id AND module TO blackboard's module
+        GET response
+        END connection
+
+        IF FILE module EXISTS THEN
+            IF CRC OF FILE module DOES NOT EQUAL CRC OF response THEN
+                WRITE response TO FILE module
+            END IF
+        END IF
+    END FOR
+END webbot

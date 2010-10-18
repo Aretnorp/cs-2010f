@@ -1,0 +1,52 @@
+TEST PLAN
+
+1. Compile the program
+
+    Expected Result:
+        The program runs!
+
+    Actual Result:
+        The program runs!
+
+2. Run the application with no arguments
+
+    Expected Result:
+        The program creates the files automatically in the local
+        directory.
+
+    Actual Result:
+        The program creates the files "calendar", "announcements"
+        and "login" in the local directory.
+
+3. Run the application with a single argument "thom0731"
+
+    Expected Result:
+        The program creates the required files in the specified
+        directory.
+
+    Actual Result:
+        The program creates the required files from the previous
+        step in the directory.
+
+4. Run the application with the files pre-existing, and ensure that
+   the files are not automatically overwritten
+
+    Expected Result:
+        The program reads the current files and uses them. It only
+        overwrites them if the data on BlackBoard is different.
+
+    Actual Result:
+        The program reads the current files and uses them. It only
+        overwrites them if the data on BlackBoard is different.
+
+5. Run the application with the files either pre-existing or
+   have them created at run-time. Login to BlackBoard using your
+   internet browser of choice. Create an event on the calendar.
+
+    Expected Result:
+        The program detects the change in the Calendar. It updates
+        the running file and adds the changes.
+
+    Actual Result:
+        The program detects the change in the Calendar. It updates
+        the running file and adds the changes.
