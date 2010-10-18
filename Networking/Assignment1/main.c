@@ -26,6 +26,11 @@
  *-----------------------------------------------------------------------------*/
 #define MAX_BUF_SIZ 32767
 
+/*-----------------------------------------------------------------------------
+ *  Global Variable Definitions
+ *-----------------------------------------------------------------------------*/
+char g_buf[MAX_BUF_SIZ]; /* Global buffer containing all necessary data */
+
 /** main
  *      Enables the use of libcurl, and connects to
  *      BB9 using a username and password. Requests
@@ -34,36 +39,66 @@
  *      @return EXIT_SUCCESS for successful execution or
  *              EXIT_FAILURE for unsuccessful execution
  */
-int main( void )
+int main( int argc, char** argv )
 {
     CURL *curl; /* Main instance of CURL */
     CURLcode res; /* Return value of CURL */
-    FILE* annFile;
-    FILE* calFile;
+    FILE* annFile; /* File value of Announcements */
+    FILE* calFile; /* File value of Calendar */
+    char* userName; /* The username that was given to the program */
+    struct stat st; /* Structure to use for directory check */
 
+    /* Run initialization functions */
+    crcInit();
     curl = curl_easy_init( );
+
+
     if(curl)
     {
         /* Initialize our curl object */
         InitBB9( curl );
 
-        /* Setup our Write Function so it doesn't print */
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, IgnoreData);
+        /* Validate arguments */
+        if(argc > 1)
+        {
+            /* Assign the parameters */
+            userName = argv[USERNAME];
 
-        /* Post the Login Page */
-        curl_easy_setopt(curl, CURLOPT_URL, URL LOGIN);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, USER);
-        res = curl_easy_perform(curl);
+            /* Check for directory */
+            if(stat(userName, &st) == -1)
+            {
+                /* Create the directory */
+                mkdir(userName, 0777);
+            }
+        }
 
-        /* Post the Required Data */
-        PostData(curl, CALENDAR_FILE, CALENDAR);
-        PostData(curl, ANNOUNCEMENTS_FILE, ANNOUNCEMENTS);
+        /* Change to the directory */
+        chdir(userName);
+
+        /* Enter a Loop */
+        for(;;)
+        {
+            /* Setup our Write Function so it doesn't print */
+            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, IgnoreData);
+
+            /* Post the Login Page */
+            curl_easy_setopt(curl, CURLOPT_URL, URL LOGIN);
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, USER);
+            res = curl_easy_perform(curl);
+
+            /* Post the Required Data */
+            PostData(curl, CALENDAR_FILE, CALENDAR);
+            PostData(curl, ANNOUNCEMENTS_FILE, ANNOUNCEMENTS);
+
+            /* Sleep for one minute */
+            sleep(SLEEP_TIME);
+        }
 
         /* Clean up */
         curl_easy_cleanup(curl);
     }
 
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 /** InitBB9
@@ -87,9 +122,9 @@ void InitBB9( CURL* curl )
     chunk = curl_slist_append(chunk, "Host: online.algonquincollege.com");
     chunk = curl_slist_append(chunk, "Connection: close");
     chunk = curl_slist_append(chunk, "Accept: application/xml,application/xhtml+xml,text/html;"
-                                        "q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5");
+                                     "q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5");
     chunk = curl_slist_append(chunk, "User-Agent: Mozilla/5.0 (X11; U; Linux x86_64; en-US) "
-                                        "Cody T WebBot/1.0\r\nAccept-Encoding: gzip, deflate");
+                                     "Cody T WebBot/1.0\r\nAccept-Encoding: gzip, deflate");
     chunk = curl_slist_append(chunk, "Accept-Language: en-US,en;q=0.8");
     chunk = curl_slist_append(chunk, "Accept-Charset: utf-8,*;q=0.3");
 
@@ -100,42 +135,67 @@ void InitBB9( CURL* curl )
     curl_easy_setopt(curl, CURLOPT_COOKIEFILE, "");
 }
 
-/** WriteData
- *      Reads data from file, does a CRC check if it's the same.
- *      If it isn't, it writes the file.
+/** AppendBuffer
+ *      Reads data from buffer and concatenates it to the
+ *      global buffer
  *
  *      @param ptr The pointer containing data
  *      @param size The size of each member in the data
  *      @param nmemb The number of members in the data
  *      @param data The pointer where to write
- *      @return The number of bytes written
+ *      @return The number of bytes read
  */
-size_t WriteData( void* ptr, size_t size, size_t nmemb, void* data )
+size_t AppendBuffer( void* ptr, size_t size, size_t nmemb, void* data )
 {
+    /* Append to the buffer */
+    sprintf(g_buf, "%s%s", g_buf, (char*)ptr);
+
+    /* Return the number of bytes appended */
+    return (size * nmemb);
+}
+
+/** WriteData
+ *      Compares the data contained in the global buffer to the data
+ *      contained within the given file. If the data is different,
+ *      it overwrites the data in the file with the data in the buffer
+ *
+ *  @param f The file to read from and write too (must be read/write!)
+ *  @return The number of bytes written, if any
+ */
+int WriteData( FILE* f )
+{
+    char buf[MAX_BUF_SIZ];
     crc inData, fileData;
     int length;
-    char buf[MAX_BUF_SIZ];
-    FILE* f = (FILE*)data;
+
+    /* Clear our buffer */
+    memset(buf, '\0', MAX_BUF_SIZ);
 
     /* Calculate the crc of the data */
-    inData = crcSlow(ptr, (size * nmemb));
-    printf("The CRC of our data: %d\n", inData);
+    inData = crcSlow(g_buf, strlen(g_buf));
 
     /* Read the file and calculate it's crc */
-    length = fread(buf, 1, MAX_BUF_SIZ, f);
-    buf[length] = '\0';
+    length = fread(buf, 1, MAX_BUF_SIZ - 1, f);
+    buf[length + 1] = '\0';
 
     /* Calculate the crc of the file data */
     fileData = crcSlow(buf, length);
-    printf("The CRC of our file data: %d\n", fileData);
 
     /* Check if CRC's are the same */
     length = 0;
     if(inData != fileData)
     {
-        printf("Updated data contained in file!\n");
-        length = fwrite(ptr, size, nmemb, data);
+        printf("Updated data contained in file! Old CRC: %d, New CRC: %d\n",
+                fileData, inData);
+        //printf("Read:\n%s\n\n\n", buf);
+        //printf("Writing:\n%s\n\n\n", g_buf);
+
+        /* Go to beginning of file */
+        fseek(f, 0, SEEK_SET);
+        length = fwrite(g_buf, 1, strlen(g_buf), f);
     }
+    else
+        printf("Files checked, no changes were made!\n");
 
     /* Return the number of bytes written */
     return length;
@@ -169,22 +229,26 @@ void PostData( CURL* curl, char* fileName, char* postString )
 {
     FILE* f; /* File to write too */
     CURLcode res; /* Return value of CURL */
-
-    /* Open up the Calendar file */
-    f = OpenFile(fileName);
+    char buf[MAX_BUF_SIZ]; /* Buffer which holds the data */
 
     /* Use the Module page to get Module Information */
     curl_easy_setopt(curl, CURLOPT_URL, URL MODULE);
+    
+    /* Open the file */
+    f = OpenFile(fileName);
+
+    /* Reset the global buffer */
+    memset(g_buf, '\0', sizeof(g_buf));
 
     /* Setup our Write Function so it does print */
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteData);
-
-    /* Set the Write to the Opened File */
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, f);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, AppendBuffer);
 
     /* Post the Calendar Module */
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postString);
     res = curl_easy_perform(curl);
+
+    /* Compare the files */
+    WriteData( f );
 
     /* Close the File */
     fclose(f);

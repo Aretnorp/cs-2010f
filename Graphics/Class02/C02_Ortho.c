@@ -33,7 +33,7 @@ void Draw( void );
 void Morph( int );
 void Init( void );
 void Reshape(int Width, int Height); 
-void keyPressed(unsigned char key, int x, int y);
+void KeyPress(unsigned char key, int x, int y);
 
 /**************************************************************************/
 /* Global Var 
@@ -45,6 +45,7 @@ float R1 = 4;
 float R2 = 2;
 int   P = MIN_POINTS;
 int   GROW = ON;
+float ortho = 10.0;
 
 /**************************************************************************/
 /* main: all initialization and callback registration.
@@ -60,8 +61,8 @@ int main( int argc, char *argv[] ) {
   	glutCreateWindow( TITLE );
   	glutDisplayFunc( Draw );
   	glutReshapeFunc( Reshape );
+        glutKeyboardFunc( KeyPress );
 
-        glutTimerFunc( 100, Morph, 1 );
 	Init( );
    	glutMainLoop();
 
@@ -75,26 +76,6 @@ void Init( void ) {
 	
 	glClearColor( SLATE, 1.0 );
 	glEnable( GL_CULL_FACE );
-
-}
-/**************************************************************************/
-/* Morph -- Your morphing function  
- * Function you need to complete.
- * You can create a morphing as changing number of Points or
- * changing the values for R1 / R2
- * You can even think about "exploding" the star
- **************************************************************************/
-void Morph( int s ) {
-        R1 += s;
-        R2 += s;
-
-	glutPostRedisplay();
-
-        if(R1 < 10)
-            glutTimerFunc( 100, Morph, 1 );
-        else
-            glutTimerFunc( 100, Morph, -1);
-
 
 }
 /**************************************************************************/
@@ -153,7 +134,28 @@ void Reshape(int Width, int Height) {
 	glViewport( 0, 0, Width, Height );
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho( -10.0, 10.0,  -10.0, 10.0,  -10.0, 10.0 );
+	glOrtho( -ortho, ortho,  -ortho, ortho,  -ortho, ortho );
 	glMatrixMode(GL_MODELVIEW);
+
+        /* glViewport(0, 0, Width, Height) */
+}
+/**************************************************************************/
+/* A reshape function which handles the resize of the window
+ *  **************************************************************************/
+void KeyPress(unsigned char k, int x, int y)
+{
+    switch(k)
+    {
+        case 'O': /* Increase */
+            ortho++;
+            break;
+        case 'o': /* Decrease */
+            ortho--;
+            break;
+        default: /* Do nothing */
+            return;
+    }
+    Reshape(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+    glutPostRedisplay();
 }
 
