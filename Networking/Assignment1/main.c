@@ -209,22 +209,6 @@ int WriteData( char* fileName )
     return length;
 }
 
-/** IgnoreData
- *      Calculates the size of data and returns it, but doesn't
- *      print anything
- *      
- *      @param ptr The pointer containing data
- *      @param size The size of each member in the data
- *      @param nmemb The number of members in the data
- *      @param data The pointer where to write
- *      @return The number of bytes that was ignored
- */
-size_t IgnoreData( void* ptr, size_t size, size_t nmemb, void* data )
-{
-    /* Ignore any of the data, and simply return the size of the data */
-    return (size * nmemb);
-}
-
 /** PostData
  *      Opens the file for posting, sets up the post data through
  *      curl, and sends it
