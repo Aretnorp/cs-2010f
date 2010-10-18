@@ -25,6 +25,7 @@
  *  Constant Definitions
  *-----------------------------------------------------------------------------*/
 #define MAX_BUF_SIZ 32767
+#define BUF_SIZ 1024
 
 /*-----------------------------------------------------------------------------
  *  Global Variable Definitions
@@ -191,14 +192,12 @@ int WriteData( char* fileName )
     length = 0;
     if(inData != fileData)
     {
+        /* File changed, notify user */
         printf("Updated data contained in %s! Old CRC: %d, New CRC: %d\n",
                 fileName, fileData, inData);
-        //printf("Read:\n%s\n\n\n", buf);
-        //printf("Writing:\n%s\n\n\n", g_buf);
 
-        /* Go to beginning of file */
-        fseek(f, 0, SEEK_SET);
-        length = fwrite(g_buf, 1, strlen(g_buf), f);
+        /* Create the Delta File */
+        length = CreateDelta( fileName );
     }
     else
         printf("%s checked, no changes were made!\n", fileName);
@@ -280,4 +279,43 @@ FILE* OpenFile( char* fileName )
             exit(EXIT_FAILURE);
         }
     }
+}
+
+/** CreateDelta
+ *      Creates a delta of a file, creates the diff
+ *      patch file, and then moves the temp file over
+ *      the original using rename
+ *
+ *      @param fileName The file to open/create
+ *      @return The number of bytes written to the temp file
+ */
+int CreateDelta( char* fileName )
+{
+        FILE* f;
+        int length;
+        char tempFileName[BUF_SIZ];
+        char diffCmd[BUF_SIZ];
+
+        /* Generate the Delta file */
+        sprintf(tempFileName, "%s-new", fileName);
+        f = fopen( tempFileName, "w+b" );
+        if( f == NULL)
+        {
+            perror(APPLICATION " Temp Diff");
+            exit(EXIT_FAILURE);
+        }
+        length = fwrite(g_buf, 1, strlen(g_buf), f);
+        fclose(f);
+
+        /* Generate the patch file */
+        sprintf(diffCmd, "diff -rcNP %s %s > %s.`date +%%F`.patch",
+            fileName, tempFileName, fileName);
+        system(diffCmd);
+
+        /* Copy over the file */
+        if(rename(tempFileName, fileName) != 0)
+        {
+            perror(APPLICATION " File Move");
+            exit(EXIT_FAILURE);
+        }
 }

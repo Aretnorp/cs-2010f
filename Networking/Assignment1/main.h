@@ -67,6 +67,7 @@ size_t AppendData( void*, size_t, size_t, void* );
 size_t IgnoreData( void*, size_t, size_t, void* );
 
 void PostData( CURL*, char*, char* );
-int WriteData( FILE* );
+int WriteData( char* );
+int CreateDelta( char* );
 
 FILE* OpenFile( char* );
