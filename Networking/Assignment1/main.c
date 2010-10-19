@@ -37,6 +37,8 @@ char g_buf[MAX_BUF_SIZ]; /* Global buffer containing all necessary data */
  *      BB9 using a username and password. Requests
  *      the Announcements and Calendar info
  *
+ *      @param argc The number of arguments
+ *      @param argv Array of arguments for strings
  *      @return EXIT_SUCCESS for successful execution or
  *              EXIT_FAILURE for unsuccessful execution
  */
@@ -78,6 +80,7 @@ int main( int argc, char** argv )
         {
             /* Open the Login file */
             loginFile = OpenFile(LOGIN_FILE);
+            curl_easy_setopt(curl, CURLOPT_HEADERDATA, loginFile);
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, loginFile);
 
             /* Post the Login Page */
@@ -88,6 +91,7 @@ int main( int argc, char** argv )
             /* Close the Login file */
             fclose(loginFile);
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, stdout);
+            curl_easy_setopt(curl, CURLOPT_HEADERDATA, NULL);
 
             /* Post the Required Data */
             PostData(curl, CALENDAR_FILE, CALENDAR);
@@ -162,7 +166,7 @@ size_t AppendBuffer( void* ptr, size_t size, size_t nmemb, void* data )
  *      contained within the given file. If the data is different,
  *      it overwrites the data in the file with the data in the buffer
  *
- *  @param f The file to read from and write too (must be read/write!)
+ *  @param fileName The filename to read from and write too
  *  @return The number of bytes written, if any
  */
 int WriteData( char* fileName )
@@ -214,7 +218,7 @@ int WriteData( char* fileName )
  *      curl, and sends it
  *
  *      @param curl The curl object to use for posting
- *      @param size The filename of the file to write too
+ *      @param fileName The filename of the file to write too
  *      @param postString What to post to the server
  */
 void PostData( CURL* curl, char* fileName, char* postString )
