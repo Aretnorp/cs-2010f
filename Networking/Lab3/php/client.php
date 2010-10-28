@@ -4,10 +4,13 @@
 $sock = socket_create(AF_INET, SOCK_STREAM, 0);
 
 # Connect the socket
-socket_connect($sock, '127.0.0.1', 1026);
+socket_connect($sock, $argv[1], intval($argv[2]));
+
+# Send the file name
+socket_send($sock, $argv[3], strlen($argv[3]), 0);
 
 # Open the file
-$file = fopen('/usr/bin/vim', 'r') or die ('Could not open file');
+$file = fopen($argv[3], 'r') or die ("Could not open file\n");
 
 # Send the data
 while(!feof($file))
