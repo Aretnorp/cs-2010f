@@ -1,0 +1,17 @@
+APPLICATION
+    Blackboard 9 WebBot
+
+LIBRARIES
+    libcurl
+    crc (incl)
+
+AUTHOR
+    Designed and developed by
+        Cody C. Thompson
+
+ABOUT
+    This application is designed to connect to Blackboard 9
+    on a set timing interval. It pulls down the announcements
+    and calendar list from the home page. Each time one of
+    these pages change, it updates the file stored on the
+    local system.

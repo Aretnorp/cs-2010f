@@ -1,4 +1,4 @@
-BEGIN Lab_01_a_Server port
+BEGIN Server port
     CREATE socket
     BIND socket TO port
     LISTEN socket
@@ -6,11 +6,11 @@ BEGIN Lab_01_a_Server port
         READ socket INTO result
         PRINT result
     END FOR
-END
+END Server
 
-BEGIN Lab_01_a_Client ip, port
+BEGIN Client ip, port
     CREATE socket
     CONNECT socket TO ip, port
     WRITE "hello workd!" TO socket
     CLOSE socket
-END
+END Client
