@@ -5,12 +5,18 @@ public class FileClient
 {
     public static void main(String[] args) throws IOException 
     {
-        Socket fileSocket = null;
+        //Assign parameters
+        String address = args[0];
+        int port = Integer.parseInt(args[1]);
+        String file = args[2];
 
         //Open the Socket
+        PrintWriter out = null;
+        Socket fileSocket = null;
         try 
         {
-            fileSocket = new Socket("127.0.0.1", 1024);
+            fileSocket = new Socket(address, port);
+            out = new PrintWriter(fileSocket.getOutputStream(), true);
         } 
         catch (UnknownHostException e) 
         {
@@ -23,11 +29,14 @@ public class FileClient
             System.exit(1);
         }
 
+        //Send the file
+        out.write(file);
+        
         //Print the file
         byte[] buf = new byte[1024];
         int length = 0;
 
-        FileInputStream in = new FileInputStream("/usr/bin/vim");
+        FileInputStream in = new FileInputStream(file);
         while((length = in.read(buf)) >= 0)
         {
         	fileSocket.getOutputStream().write(buf, 0, length);
