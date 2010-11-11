@@ -26,16 +26,23 @@
  *-----------------------------------------------------------------------------*/
 void AddNode(TransformList *list, Transform *t)
 {
-    TransformNode *root;
     TransformNode *node;
 
-    /* Create the node */
-    if((node = malloc(sizeof(struct TransformNode))) == NULL)
-    {
-        fprintf(stderr, "Node creation failed.\n");
+    /* Create the Node */
+    if((node = CreateNode(t)) == NULL)
         return;
-    }
-    node->data = t;
+
+    /* Add the Node to the list */
+    AppendNode(list, node);
+}
+
+/*-----------------------------------------------------------------------------
+ *  RunTransform
+ *  Process the transformation given and apply it to the pipeline
+ *-----------------------------------------------------------------------------*/
+void AppendNode(TransformList *list, TransformNode *node)
+{
+    TransformNode *root;
 
     /* Adds a node to the end of the list */
     if(list->root == NULL)
@@ -54,21 +61,45 @@ void AddNode(TransformList *list, Transform *t)
     }
 }
 
-
 /*-----------------------------------------------------------------------------
  *  RunTransform
  *  Process the transformation given and apply it to the pipeline
  *-----------------------------------------------------------------------------*/
-void RemoveNode(TransformNode *node)
+void RemoveNode(TransformList *list, TransformNode *node)
 {
-    /* Deletes a node from the list */
-    node->prev->next = node->next;
-    node->next->prev = node->prev;
+    if((list == NULL) || (node == NULL))
+        return;
 
-    /* Free the memory from the list */
-    free(node);
+    /* Delete the root node */
+    if(node == list->root)
+    {
+        /* If it's the last node */
+        if(node->next == node)
+        {
+            printf("Removing root\n");
+            list->root = NULL;
+        }
+        /* If it's the first node */
+        else
+        {
+            printf("Removing first not only\n");
+            list->root = node->next;
+            node->next->prev = node->prev;
+            node->prev->next = node->next;
+        }
+
+    }
+    else
+    {
+        printf("Removing a node\n");
+        /* Deletes a node from the list */
+        node->prev->next = node->next;
+        node->next->prev = node->prev;
+    }
+
+    node->next = NULL;
+    node->prev = NULL;
 }
-
 
 /*-----------------------------------------------------------------------------
  *  RunTransform
@@ -89,6 +120,25 @@ void InsertNode(TransformNode *node, TransformNode *prev)
     prev->next = node;
 }
 
+TransformNode* CreateNode(Transform* data)
+{
+    TransformNode* newNode;
+
+    /* Create the data */
+    if((newNode = (TransformNode*)malloc(sizeof(TransformNode))) == NULL)
+    {
+        perror("2D"); exit(EXIT_FAILURE);
+    }
+    printf("oh shi\n");
+
+    /* Assign the new node */
+    newNode->next = NULL;
+    newNode->prev = NULL;
+    newNode->data = data;
+
+    /* Return the newly created node */
+    return newNode;
+}
 
 void CopyList(TransformList *from, TransformList *to)
 {
@@ -103,25 +153,32 @@ void CopyList(TransformList *from, TransformList *to)
     {
         TransformNode* newNode;
         TransformNode* prevNode;
+        Transform* t;
 
         /* Create a new node */
         if((newNode = (TransformNode*)malloc(sizeof(TransformNode))) == NULL)
         {
             perror("2D"); exit(EXIT_FAILURE);
         }
-        printf("oh shi\n");
+        if((t = (Transform*)malloc(sizeof(Transform))) == NULL)
+        {
+            perror("2D"); exit(EXIT_FAILURE);
+        }
+        t->type = node->data->type;
+        t->axis = node->data->axis;
+        t->value = 0;
 
         /* Copy the node */
         if(to->root == NULL)
         {
             to->root = newNode;
-            newNode->data = node->data;
+            newNode->data = t;
             newNode->next = newNode;
             newNode->prev = newNode;
         }
         else
         {
-            newNode->data = node->data;
+            newNode->data = t;
             newNode->prev = prevNode;
             prevNode->next = newNode;
             newNode->next = to->root;
