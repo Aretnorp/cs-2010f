@@ -27,28 +27,27 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <malloc.h>
+#include <string.h>
+#include "list.h"
 
 #define TRUE 1
 #define FALSE 0
 
 #define NUM_LISTS 2
 
-/* Figure out what this is for, yo */
 #define N 1
 
 #define BUF_SIZ 256
 
 #define DEFAULT_FONT GLUT_BITMAP_8_BY_13
 
+#define VERTICAL 1
+#define HORIZONTAL 0
 
-/*-----------------------------------------------------------------------------
- *  Global Definitions
- *-----------------------------------------------------------------------------*/
-int xmin = -10;
-int xmax = 10;
-int ymin = -10;
-int ymax = 10;
+#define AVAILABLE 100
+#define SELECTED 200
 
+#define HOUSE 2
 
 /*-----------------------------------------------------------------------------
  *  Function Definitions
@@ -62,6 +61,29 @@ void InitShapes( void );
 void ProcessHits( GLint, GLuint[] );
 void DrawShapes( GLenum );
 void Mouse( int, int, int, int );
+void MouseMove( int, int );
+
+void RunTransform( Transform* );
+void ReadTransforms( char*, TransformList* );
+void RunTransformList( TransformList* );
+void CopyList( TransformList*, TransformList* );
+void CreateTransforms( TransformList*, int, int );
+
+
+/*-----------------------------------------------------------------------------
+ *  Global Definitions
+ *-----------------------------------------------------------------------------*/
+int xmin = -100;
+int xmax = 130;
+int ymin = -130;
+int ymax = 100;
+TransformList tlLevel;
+TransformList tlSelectedTransforms;
+TransformList tlAvailableTransforms;
+GLdouble lastX = 0;
+GLdouble lastY = 0;
+int selectedIndex = 0;
+TransformNode* selectedNode;
 
 /*-----------------------------------------------------------------------------
  *  Main Function
@@ -90,8 +112,9 @@ int main( int argc, char *argv[] )
     /* Create the Keyboard callback */
     glutKeyboardFunc( Keyboard );
 
-    /* Create the Mouse callback */
-    glutMouseFunc( Mouse );
+    /* Create the Mouse callbacks */
+    glutMouseFunc( Mouse ); 
+    glutMotionFunc( MouseMove );
 
     /* Create the Reshape callback */
     glutReshapeFunc( Reshape );
@@ -106,6 +129,14 @@ int main( int argc, char *argv[] )
 
     /* Initialize the House Shapes */
     InitShapes( );
+
+    /* Add the transform */
+    tlLevel.root = NULL;
+    tlSelectedTransforms.root = NULL;
+    tlAvailableTransforms.root = NULL;
+    ReadTransforms("tx 50,sx 2,rz 180", &tlLevel);
+    PrintList(&tlLevel);
+    CopyList( &tlLevel, &tlAvailableTransforms );
 
     /* Turn over control to OpenGL */
     glutMainLoop();
@@ -124,19 +155,55 @@ void InitShapes( void )
         /* Draw the main part of the house */
         glColor3f( 1.0, 0.0, 0.0 );
         glBegin( GL_QUADS );
-            glVertex3f(  1.0,  1.0, 0.0 );
-            glVertex3f( -1.0,  1.0, 0.0 );
-            glVertex3f( -1.0, -1.0, 0.0 );
-            glVertex3f(  1.0, -1.0, 0.0 );
+            glVertex3f(  10.0,  10.0, 0.0 );
+            glVertex3f( -10.0,  10.0, 0.0 );
+            glVertex3f( -10.0, -10.0, 0.0 );
+            glVertex3f(  10.0, -10.0, 0.0 );
         glEnd( );
 
         /* Draw the top of the house */
         glColor3f( 0.0, 1.0, 0.0 );
         glBegin( GL_TRIANGLES );
-            glVertex3f(  1.25,  1.0, 0.0 );
-            glVertex3f(   0.0,  2.0, 0.0 );
-            glVertex3f( -1.25,  1.0, 0.0 );
+            glVertex3f(  12.5,  10.0, 0.0 );
+            glVertex3f(   0.0,  20.0, 0.0 );
+            glVertex3f( -12.5,  10.0, 0.0 );
         glEnd( );
+        glColor3f( 1.0, 1.0, 1.0 );
+    glEndList( );
+
+    /* Define the two new lists */
+    glNewList( 'l', GL_COMPILE );
+        /* Draw the main part of the house */
+        glColor3f( 0.5, 0.0, 0.0 );
+        glBegin( GL_QUADS );
+            glVertex3f(  10.0,  10.0, 0.0 );
+            glVertex3f( -10.0,  10.0, 0.0 );
+            glVertex3f( -10.0, -10.0, 0.0 );
+            glVertex3f(  10.0, -10.0, 0.0 );
+        glEnd( );
+
+        /* Draw the top of the house */
+        glColor3f( 0.0, 0.5, 0.0 );
+        glBegin( GL_TRIANGLES );
+            glVertex3f(  12.5,  10.0, 0.0 );
+            glVertex3f(   0.0,  20.0, 0.0 );
+            glVertex3f( -12.5,  10.0, 0.0 );
+        glEnd( );
+        glColor3f( 1.0, 1.0, 1.0 );
+    glEndList( );
+
+    /* Define the list for the Shape */
+    glNewList( 't', GL_COMPILE );
+        glColor3f( 0.5, 0.0, 1.0 );
+        glBegin( GL_POLYGON );
+            glVertex3f(  10.0,  0.0,  0.0 );
+            glVertex3f(   5.0,  7.5,  0.0 );
+            glVertex3f( -10.0,  7.5,  0.0 );
+            glVertex3f(  -5.0,  0.0,  0.0 );
+            glVertex3f( -10.0, -7.5,  0.0 );
+            glVertex3f(   5.0, -7.5,  0.0 );
+        glEnd( );
+        glColor3f( 1.0, 1.0, 1.0 );
     glEndList( );
 }
 
@@ -146,6 +213,7 @@ void InitShapes( void )
  *-----------------------------------------------------------------------------*/
 void ClearMemory( void )
 {
+    //Clear our lists
 }
 
 /*-----------------------------------------------------------------------------
@@ -159,38 +227,44 @@ void Draw( void )
 
     /* Clear the screen ... */
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-    glLoadIdentity( );
 
-    /* Draw some text */
-    sprintf(buf, "Some text");
-    DrawText( -0.5, 2.5, DEFAULT_FONT, buf);
+    /* Draw the first set of Available Transforms */
+    glPushMatrix( );
+        /* Move to origin of first list */
+        glTranslatef( 85.0, 90.0, 0.0 );
 
-    /* Render the Shape */
-    DrawShapes( GL_RENDER );
+        /* List drawing */
+        CreateTransforms( &tlAvailableTransforms, VERTICAL, AVAILABLE );
+    glPopMatrix( );
+
+    /* Draw the second set of Used Transforms */
+    glPushMatrix( );
+        /* Move to origin of first list */
+        glTranslatef( 85.0, -90.0, 0.0 );
+
+        /* List drawing */
+        CreateTransforms( &tlAvailableTransforms, HORIZONTAL, SELECTED );
+    glPopMatrix( );
+
+    glPushMatrix( );
+        /* Do all level transforms */
+        RunTransformList( &tlLevel );
+
+        /* Create model house */
+        glLoadName( 1 );
+        glCallList( 'l' );
+    glPopMatrix( );
+
+    /* Create the new house */
+    glPushMatrix(  );
+        glLoadName( 2 );
+        glCallList( 'h' );
+    glPopMatrix( );
 
     /* Flush the buffer */
     glutSwapBuffers();
 
     return;
-}
-
-/*-----------------------------------------------------------------------------
- *  Keyboard
- *  Handles the keyboard input for each of the various buttons
- *-----------------------------------------------------------------------------*/
-void DrawShapes( GLenum mode )
-{
-    /* Render the Shape */
-    glLoadName(1);
-    glCallList('h');
-
-    /* Render the Shape */
-    glPushMatrix();
-        glLoadName(2);
-
-        glTranslatef( 5.0, 5.0, 0.0 );
-        glCallList( 'h' );
-    glPopMatrix();
 }
 
 /*-----------------------------------------------------------------------------
@@ -245,20 +319,32 @@ void Mouse(int button, int state, int x, int y)
         glPushName( 0 );
 
         /* Draw the Shapes with Select enabled */
-        DrawShapes( GL_SELECT );
+        Draw( );
 
         /* Reset the Projection Matrix */
         glMatrixMode( GL_PROJECTION );
         glPopMatrix( );
 
-        /* Return drawing to ModelView */
+        /* Return drawing to MODELVIEW */
         glMatrixMode( GL_MODELVIEW );
 
         /* Get the number of hits */
         hits = glRenderMode( GL_RENDER );
         ProcessHits( hits, nameBuffer );
 
+        /* Call a movement */
+        MouseMove( x, y );
+
         /* Draw the display */
+        glutPostRedisplay( );
+    }
+    else if((button == GLUT_LEFT_BUTTON) && (state == GLUT_UP))
+    {
+        /* Reset the mouse display */
+        selectedIndex = 0;
+        selectedNode = NULL;
+
+        /* Set the new position */
         glutPostRedisplay( );
     }
 }
@@ -292,7 +378,7 @@ void Reshape( int width, int height )
 void DrawText( float x, float y, void* font, char* buf) 
 {
     /* Set the position */
-    glRasterPos2f(x, y);
+    glRasterPos3f(x, y, 0.1);
 
     /* Print the text */
     glutBitmapString(font, buf);
@@ -308,10 +394,9 @@ void ProcessHits( GLint hits, GLuint buffer[] )
     GLuint names, *ptr;
 
     printf("hits = %d\n", hits);
-    ptr = buffer;
-
     printf("names: %d %d %d %d\n", buffer[0], buffer[1], buffer[2], buffer[3]);
 
+    ptr = buffer;
     for(i = 0; i < hits; ++i)
     {
         names = *ptr;
@@ -325,8 +410,175 @@ void ProcessHits( GLint hits, GLuint buffer[] )
             if(*ptr == 1) printf("Red Rectangle\n");
             else printf("Blue Rectangle\n");
 
+            selectedIndex = *ptr;
+
             /* Go to the next hit record */
             ptr++;
         }
+    }
+}
+
+/*-----------------------------------------------------------------------------
+ *  RunTransform
+ *  Process the transformation given and apply it to the pipeline
+ *-----------------------------------------------------------------------------*/
+void RunTransform(struct Transform *t)
+{
+    /* Calculate each dimension */
+    GLfloat x = 0;
+    GLfloat y = 0;
+    if(t->axis == 'x') 
+        x = (GLfloat)t->value;
+    else
+        y = (GLfloat)t->value;
+
+    /* Execute transform */
+    switch(t->type)
+    {
+        case 't': /* Translate */
+            glTranslatef(x, y, 0); break;
+        case 's': /* Scale */
+            if(x == 0) x += 1; else y += 1;
+            glScalef(x, y, 1); break;
+        case 'r': /* Rotate */
+            glRotatef(t->value, 0.0, 0.0, 1.0); break;
+    }
+}
+
+/*-----------------------------------------------------------------------------
+ *  RunTransform
+ *  Process the transformation given and apply it to the pipeline
+ *-----------------------------------------------------------------------------*/
+void ReadTransforms(char* buf, TransformList *list)
+{
+    char type = ' ';
+    char axis = ' ';
+    int value = 0;
+    char* p = buf;
+
+    /* Read the buffer */
+    while(p != NULL)
+    {
+        /* Read the contents of the buffer */
+        sscanf(p, "%c%c %d", &type, &axis, &value);
+
+        /* Define a new Transform */
+        Transform* t;
+        if((t = malloc(sizeof(Transform))) == NULL)
+        {
+            perror("2D"); exit(EXIT_FAILURE);
+        }
+        t->type = type;
+        t->axis = axis;
+        t->value = value;
+
+        /* Add it to the list */
+        AddNode(list, t);
+
+        /* Scan for the next item */
+        p = strstr(p, ",");
+        if(p != NULL)
+            p += 1;
+    }
+}
+
+
+/*-----------------------------------------------------------------------------
+ *  RunTransform
+ *  Process the transformation given and apply it to the pipeline
+ *-----------------------------------------------------------------------------*/
+void RunTransformList(TransformList *list)
+{
+    TransformNode* node = list->root;
+
+    /* Verify the list */
+    if(list->root == NULL)
+        return;
+
+
+    /* Iterate through the list */
+    do
+    {
+        RunTransform(node->data);
+        node = node->next;
+    } while((node != list->root) && (node != NULL));
+}
+
+
+/*-----------------------------------------------------------------------------
+ *  RunTransform
+ *  Process the transformation given and apply it to the pipeline
+ *-----------------------------------------------------------------------------*/
+void CreateTransforms(TransformList *list, int dimension, int start)
+{
+    TransformNode* node = list->root;
+    char buf[BUF_SIZ];
+    int i;
+
+    /* Verify the list */
+    if(list->root == NULL)
+        return;
+
+    /* Iterate through the list */
+    i = start;
+    do
+    {
+        /* Draw the shape */
+        glLoadName(i);
+        printf("Loading shape %d\n", i);
+        glPushMatrix( );
+            if(selectedIndex == i)
+            {
+                glLoadIdentity( );
+                glTranslatef( lastX, lastY, 0.0 );
+                selectedNode = node;
+            }
+            glCallList('t');
+
+            /* Write the text */
+            sprintf(buf, "%c%c", toupper(node->data->type),
+                    node->data->axis);
+            DrawText(-2.5, -0.5, DEFAULT_FONT, buf);
+        glPopMatrix( );
+
+        /* Transform the next list down */
+        if(dimension == VERTICAL)
+            glTranslatef( 0.0, -20.0, 0.0 );
+        /* Transform the next list left */
+        else
+            glTranslatef(-20.0, 0.0, 0.0 );
+
+        node = node->next;
+        ++i;
+    } while((node != list->root) && (node != NULL));
+}
+
+void MouseMove( int x, int y )
+{
+    GLdouble objX, objY, objZ;
+    GLfloat winX, winY;
+    GLint view[4];
+    GLdouble p[16];
+    GLdouble m[16];
+    GLdouble z;
+
+    /* Get the matrices and the viewport */
+    glGetDoublev( GL_PROJECTION_MATRIX, p );
+    glGetDoublev( GL_MODELVIEW_MATRIX, m );
+    glGetIntegerv( GL_VIEWPORT, view );
+
+    /* Get the window coordinates */
+    winX = (float)x;
+    winY = (float)view[3] - (float)y;
+
+    /* Unproject the coordinates from the window */
+    gluUnProject( winX, winY, 0.5, m, p, view, &objX, &objY, &objZ );
+
+    /* Store the coordinates */
+    if(selectedIndex != 0)
+    {
+        lastX = objX;
+        lastY = objY;
+        glutPostRedisplay( );
     }
 }
