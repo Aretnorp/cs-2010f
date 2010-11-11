@@ -231,7 +231,7 @@ void Draw( void )
     /* Draw the first set of Available Transforms */
     glPushMatrix( );
         /* Move to origin of first list */
-        glTranslatef( 85.0, 90.0, 0.0 );
+        glTranslatef( 115.0, 90.0, 0.0 );
 
         /* List drawing */
         CreateTransforms( &tlAvailableTransforms, VERTICAL, AVAILABLE );
@@ -240,10 +240,10 @@ void Draw( void )
     /* Draw the second set of Used Transforms */
     glPushMatrix( );
         /* Move to origin of first list */
-        glTranslatef( 85.0, -90.0, 0.0 );
+        glTranslatef( 115.0, -120.0, 0.0 );
 
         /* List drawing */
-        CreateTransforms( &tlAvailableTransforms, HORIZONTAL, SELECTED );
+        CreateTransforms( &tlSelectedTransforms, HORIZONTAL, SELECTED );
     glPopMatrix( );
 
     glPushMatrix( );
@@ -257,7 +257,10 @@ void Draw( void )
 
     /* Create the new house */
     glPushMatrix(  );
-        glLoadName( 2 );
+        /* Do all user seelcted transforms */
+        RunTransformList( &tlSelectedTransforms );
+
+        glLoadName( HOUSE );
         glCallList( 'h' );
     glPopMatrix( );
 
@@ -340,12 +343,34 @@ void Mouse(int button, int state, int x, int y)
     }
     else if((button == GLUT_LEFT_BUTTON) && (state == GLUT_UP))
     {
-        /* Reset the mouse display */
-        selectedIndex = 0;
-        selectedNode = NULL;
+        if(selectedNode != NULL)
+        {
+            TransformList* from;
+            TransformList* to;
 
-        /* Set the new position */
-        glutPostRedisplay( );
+            /* Check if its in the dimension */
+            if((selectedIndex / SELECTED) == 1)
+            {
+                from = &tlSelectedTransforms;
+                to = &tlAvailableTransforms;
+            }
+            else
+            {
+                from = &tlAvailableTransforms;
+                to = &tlSelectedTransforms;
+            }
+
+            /* Swap the nodes */
+            RemoveNode(from, selectedNode);
+            AppendNode(to, selectedNode);
+
+            /* Reset the mouse display */
+            selectedIndex = 0;
+            selectedNode = NULL;
+
+            /* Set the new position */
+            glutPostRedisplay( );
+        }
     }
 }
 
@@ -358,7 +383,7 @@ void Reshape( int width, int height )
 {
     /* Change to Projection Matrix */
     glMatrixMode( GL_PROJECTION );
-    glLoadIdentity();
+    glLoadIdentity( );
 
     /* Configure Viewport */
     glViewport(0, 0, width, height);
@@ -438,7 +463,8 @@ void RunTransform(struct Transform *t)
         case 't': /* Translate */
             glTranslatef(x, y, 0); break;
         case 's': /* Scale */
-            if(x == 0) x += 1; else y += 1;
+            if(x < 1) x = 1;
+            if(y < 1) y = 1;
             glScalef(x, y, 1); break;
         case 'r': /* Rotate */
             glRotatef(t->value, 0.0, 0.0, 1.0); break;
@@ -525,7 +551,6 @@ void CreateTransforms(TransformList *list, int dimension, int start)
     {
         /* Draw the shape */
         glLoadName(i);
-        printf("Loading shape %d\n", i);
         glPushMatrix( );
             if(selectedIndex == i)
             {
@@ -536,9 +561,9 @@ void CreateTransforms(TransformList *list, int dimension, int start)
             glCallList('t');
 
             /* Write the text */
-            sprintf(buf, "%c%c", toupper(node->data->type),
-                    node->data->axis);
-            DrawText(-2.5, -0.5, DEFAULT_FONT, buf);
+            sprintf(buf, "%c%c=%d", toupper(node->data->type),
+                    node->data->axis, node->data->value);
+            DrawText(-5, -2, DEFAULT_FONT, buf);
         glPopMatrix( );
 
         /* Transform the next list down */
@@ -557,6 +582,7 @@ void MouseMove( int x, int y )
 {
     GLdouble objX, objY, objZ;
     GLfloat winX, winY;
+    GLfloat deltaX, deltaY;
     GLint view[4];
     GLdouble p[16];
     GLdouble m[16];
@@ -577,6 +603,23 @@ void MouseMove( int x, int y )
     /* Store the coordinates */
     if(selectedIndex != 0)
     {
+        /* Calculate the Delta */
+        if((selectedIndex == HOUSE) && (tlSelectedTransforms.root != NULL))
+        {
+            Transform* t = tlSelectedTransforms.root->prev->data;
+            deltaX = objX - lastX;
+            deltaY = objY - lastY;
+
+            /* Ensure there is a list */
+            if(t->type == 'r')
+                t->value = objX * 2;
+            else if(t->axis == 'x')
+                t->value = objX / 2;
+            else
+                t->value = objY;
+        }
+
+        /* Store the last values */
         lastX = objX;
         lastY = objY;
         glutPostRedisplay( );
