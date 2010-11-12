@@ -65,36 +65,6 @@ void AppendNode(TransformList *list, TransformNode *node)
  *  RunTransform
  *  Process the transformation given and apply it to the pipeline
  *-----------------------------------------------------------------------------*/
-void RemoveNode(TransformList *list, TransformNode *node)
-{
-    if((list == NULL) || (node == NULL))
-        return;
-
-    /* Root node */
-    if((list->root == node) && (list->tail == node))
-    {
-        list->root = NULL;
-        list->tail = NULL;
-    }
-    /* Middle node */
-    else
-    {
-        if(node->prev == NULL)
-        {
-            list->root = node->next;
-            list->root->prev = NULL;
-        }
-        if(node->next == NULL)
-        {
-            list->tail = node->prev;
-            list->tail->next = NULL;
-        }
-    }
-
-    /* Clear the nodes pointers */
-    node->next = NULL;
-    node->prev = NULL;
-}
 
 /*-----------------------------------------------------------------------------
  *  RunTransform
@@ -129,7 +99,6 @@ TransformNode* CreateNode(Transform* data)
     {
         perror("2D"); exit(EXIT_FAILURE);
     }
-    printf("oh shi\n");
 
     /* Assign the new node */
     newNode->next = NULL;
@@ -200,4 +169,17 @@ void PrintList(TransformList *list)
                 node->data->value);
         node = node->next;
     } while((node != list->root) && (node != NULL));
+}
+
+void RemoveNode(TransformList* list, TransformNode* lnode)
+{
+    if(lnode->prev == NULL)
+        list->root = lnode->next;
+    else
+        lnode->prev->next = lnode->next;
+
+    if(lnode->next == NULL)
+        list->tail = lnode->prev;
+    else
+        lnode->next->prev = lnode->prev;
 }
