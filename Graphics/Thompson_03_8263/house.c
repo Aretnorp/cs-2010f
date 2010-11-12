@@ -33,7 +33,8 @@
 #define TRUE 1
 #define FALSE 0
 
-#define NUM_LISTS 2
+#define MATRIX_SIZE 16
+#define EPSILON 0.000001
 
 #define N 1
 
@@ -84,6 +85,7 @@ GLdouble lastX = 0;
 GLdouble lastY = 0;
 int selectedIndex = 0;
 TransformNode* selectedNode;
+int levelComplete = FALSE;
 
 /*-----------------------------------------------------------------------------
  *  Main Function
@@ -224,6 +226,8 @@ void ClearMemory( void )
 void Draw( void )
 {
     char buf[BUF_SIZ];
+    GLdouble answer[16];
+    GLdouble attempt[16];
 
     /* Clear the screen ... */
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
@@ -253,6 +257,9 @@ void Draw( void )
         /* Create model house */
         glLoadName( 1 );
         glCallList( 'l' );
+
+        /* Get the modelview matrix */
+        glGetDoublev( GL_MODELVIEW_MATRIX, answer );
     glPopMatrix( );
 
     /* Create the new house */
@@ -260,9 +267,17 @@ void Draw( void )
         /* Do all user seelcted transforms */
         RunTransformList( &tlSelectedTransforms );
 
+        /* Create attempt house */
         glLoadName( HOUSE );
         glCallList( 'h' );
+
+        /* Get the modelview matrix */
+        glGetDoublev( GL_MODELVIEW_MATRIX, attempt );
     glPopMatrix( );
+
+    /* Compare the model */
+    if(CompareMatrices(answer, attempt))
+        DrawText(0.0, 0.0, DEFAULT_FONT, "LEVEL COMPLETE");
 
     /* Flush the buffer */
     glutSwapBuffers();
@@ -523,11 +538,11 @@ void RunTransformList(TransformList *list)
 
 
     /* Iterate through the list */
-    do
+    while(node != NULL)
     {
         RunTransform(node->data);
         node = node->next;
-    } while((node != list->root) && (node != NULL));
+    }
 }
 
 
@@ -547,7 +562,7 @@ void CreateTransforms(TransformList *list, int dimension, int start)
 
     /* Iterate through the list */
     i = start;
-    do
+    while(node != NULL)
     {
         /* Draw the shape */
         glLoadName(i);
@@ -575,7 +590,7 @@ void CreateTransforms(TransformList *list, int dimension, int start)
 
         node = node->next;
         ++i;
-    } while((node != list->root) && (node != NULL));
+    }
 }
 
 void MouseMove( int x, int y )
@@ -606,7 +621,7 @@ void MouseMove( int x, int y )
         /* Calculate the Delta */
         if((selectedIndex == HOUSE) && (tlSelectedTransforms.root != NULL))
         {
-            Transform* t = tlSelectedTransforms.root->prev->data;
+            Transform* t = tlSelectedTransforms.tail->data;
             deltaX = objX - lastX;
             deltaY = objY - lastY;
 
@@ -624,4 +639,15 @@ void MouseMove( int x, int y )
         lastY = objY;
         glutPostRedisplay( );
     }
+}
+
+int CompareMatrices( GLdouble *a, GLdouble *b )
+{
+    int i = 0;
+
+    /* Iterate through and compare each part of the matrix */
+    for(i = 0; i < MATRIX_SIZE; ++i)
+        if( fabs(a[i] - b[i]) > EPSILON )
+            return FALSE;
+    return TRUE;
 }
