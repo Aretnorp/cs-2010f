@@ -48,16 +48,16 @@ void AppendNode(TransformList *list, TransformNode *node)
     if(list->root == NULL)
     {
         list->root = node;
-        node->next = node;
-        node->prev = node;
+        list->tail = node;
+        node->next = NULL;
+        node->prev = NULL;
     }
     else
     {
-        root = list->root;
-        node->next = root;
-        node->prev = root->prev;
-        root->prev->next = node;
-        root->prev = node;
+        node->prev = list->tail;
+        list->tail->next = node;
+        node->next = NULL;
+        list->tail = node;
     }
 }
 
@@ -70,33 +70,28 @@ void RemoveNode(TransformList *list, TransformNode *node)
     if((list == NULL) || (node == NULL))
         return;
 
-    /* Delete the root node */
-    if(node == list->root)
+    /* Root node */
+    if((list->root == node) && (list->tail == node))
     {
-        /* If it's the last node */
-        if(node->next == node)
-        {
-            printf("Removing root\n");
-            list->root = NULL;
-        }
-        /* If it's the first node */
-        else
-        {
-            printf("Removing first not only\n");
-            list->root = node->next;
-            node->next->prev = node->prev;
-            node->prev->next = node->next;
-        }
-
+        list->root = NULL;
+        list->tail = NULL;
     }
+    /* Middle node */
     else
     {
-        printf("Removing a node\n");
-        /* Deletes a node from the list */
-        node->prev->next = node->next;
-        node->next->prev = node->prev;
+        if(node->prev == NULL)
+        {
+            list->root = node->next;
+            list->root->prev = NULL;
+        }
+        if(node->next == NULL)
+        {
+            list->tail = node->prev;
+            list->tail->next = NULL;
+        }
     }
 
+    /* Clear the nodes pointers */
     node->next = NULL;
     node->prev = NULL;
 }
@@ -120,6 +115,11 @@ void InsertNode(TransformNode *node, TransformNode *prev)
     prev->next = node;
 }
 
+
+/*-----------------------------------------------------------------------------
+ *  RunTransform
+ *  Process the transformation given and apply it to the pipeline
+ *-----------------------------------------------------------------------------*/
 TransformNode* CreateNode(Transform* data)
 {
     TransformNode* newNode;
@@ -140,6 +140,10 @@ TransformNode* CreateNode(Transform* data)
     return newNode;
 }
 
+/*-----------------------------------------------------------------------------
+ *  RunTransform
+ *  Process the transformation given and apply it to the pipeline
+ *-----------------------------------------------------------------------------*/
 void CopyList(TransformList *from, TransformList *to)
 {
     TransformNode* node = from->root;
@@ -149,10 +153,10 @@ void CopyList(TransformList *from, TransformList *to)
         return;
 
     /* Copy the list */
-    do
+    node = from->root;
+    while(node != NULL)
     {
         TransformNode* newNode;
-        TransformNode* prevNode;
         Transform* t;
 
         /* Create a new node */
@@ -167,27 +171,14 @@ void CopyList(TransformList *from, TransformList *to)
         t->type = node->data->type;
         t->axis = node->data->axis;
         t->value = 0;
+        newNode->data = t;
 
         /* Copy the node */
-        if(to->root == NULL)
-        {
-            to->root = newNode;
-            newNode->data = t;
-            newNode->next = newNode;
-            newNode->prev = newNode;
-        }
-        else
-        {
-            newNode->data = t;
-            newNode->prev = prevNode;
-            prevNode->next = newNode;
-            newNode->next = to->root;
-        }
+        AppendNode(to, newNode);
 
         /* Goto next node */
-        prevNode = newNode;
         node = node->next;
-    } while((node != from->root) && (node != NULL));
+    }
 }
 
 /*-----------------------------------------------------------------------------

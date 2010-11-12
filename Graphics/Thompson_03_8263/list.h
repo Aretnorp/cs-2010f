@@ -44,6 +44,7 @@ typedef struct TransformNode
 typedef struct TransformList
 {
     struct TransformNode* root;
+    struct TransformNode* tail;
 } TransformList;
 
 /*-----------------------------------------------------------------------------
