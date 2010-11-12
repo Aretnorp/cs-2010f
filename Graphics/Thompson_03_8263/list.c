@@ -3,16 +3,26 @@
  *
  *       Filename:  list.c
  *
- *    Description:  
+ *    Description:  Provides an interface to a 2D transformation game. Levels are read
+ *                  from a file. Each level is a list of transformations. The users
+ *                  objective is to figure out the value of each of the transformations.
  *
  *        Version:  1.0
- *        Created:  10-11-11 09:07:19 AM
- *       Revision:  none
- *       Compiler:  gcc
+ *        Created:  11/11/2010 4:00:00 PM
  *
- *         Author:  YOUR NAME (), 
- *        Company:  
+ *         Author:  Cody Thompson
  *
+ *     Difficulty:  The most difficult aspects were the drag and drop functionality,
+ *                  and implementing a functional linked list within the assignment
+ *                  specification. Once the custom tailored Linked List was complete
+ *                  and the drag drop code properly implemented, the remaining
+ *                  sections fell into place. I would rate the level of difficulty at
+ *                  a 4, making it among the most difficult of Graphics assignments
+ *                  yet.
+ *     Objectives:  Receive a better grasp of Transformations within a 2D Space. Make
+ *                  use of Drag and Drop Mouse related functions in GLUT. Learn pop
+ *                  and push matrices. Implement a custom set of transformations within
+ *                  an assignment.
  * =====================================================================================
  */
 /*-----------------------------------------------------------------------------
@@ -21,8 +31,8 @@
 #include "list.h"
 
 /*-----------------------------------------------------------------------------
- *  RunTransform
- *  Process the transformation given and apply it to the pipeline
+ *  AddNode
+ *  Create a Node and add it to the end of the list
  *-----------------------------------------------------------------------------*/
 void AddNode(TransformList *list, Transform *t)
 {
@@ -36,59 +46,10 @@ void AddNode(TransformList *list, Transform *t)
     AppendNode(list, node);
 }
 
-/*-----------------------------------------------------------------------------
- *  RunTransform
- *  Process the transformation given and apply it to the pipeline
- *-----------------------------------------------------------------------------*/
-void AppendNode(TransformList *list, TransformNode *node)
-{
-    TransformNode *root;
-
-    /* Adds a node to the end of the list */
-    if(list->root == NULL)
-    {
-        list->root = node;
-        list->tail = node;
-        node->next = NULL;
-        node->prev = NULL;
-    }
-    else
-    {
-        node->prev = list->tail;
-        list->tail->next = node;
-        node->next = NULL;
-        list->tail = node;
-    }
-}
 
 /*-----------------------------------------------------------------------------
- *  RunTransform
- *  Process the transformation given and apply it to the pipeline
- *-----------------------------------------------------------------------------*/
-
-/*-----------------------------------------------------------------------------
- *  RunTransform
- *  Process the transformation given and apply it to the pipeline
- *-----------------------------------------------------------------------------*/
-void InsertNode(TransformNode *node, TransformNode *prev)
-{
-    /* Check to make sure we're not moving it to the same place */
-    if(node->prev == prev)
-        return;
-
-    /* Remove the node from the list */
-    node->prev->next = node->next;
-    node->next->prev = node->prev;
-
-    /* Add it after prev */
-    prev->next->prev = node;
-    prev->next = node;
-}
-
-
-/*-----------------------------------------------------------------------------
- *  RunTransform
- *  Process the transformation given and apply it to the pipeline
+ *  CreateNode
+ *  Generate a new node and return its pointer or NULL
  *-----------------------------------------------------------------------------*/
 TransformNode* CreateNode(Transform* data)
 {
@@ -110,8 +71,8 @@ TransformNode* CreateNode(Transform* data)
 }
 
 /*-----------------------------------------------------------------------------
- *  RunTransform
- *  Process the transformation given and apply it to the pipeline
+ *  CopyList
+ *  Take a list, copy it, but exclude the actual Transform data
  *-----------------------------------------------------------------------------*/
 void CopyList(TransformList *from, TransformList *to)
 {
@@ -171,6 +132,10 @@ void PrintList(TransformList *list)
     } while((node != list->root) && (node != NULL));
 }
 
+/*-----------------------------------------------------------------------------
+ *  RemoveNode
+ *  Remove a node from the specified list
+ *-----------------------------------------------------------------------------*/
 void RemoveNode(TransformList* list, TransformNode* lnode)
 {
     if(lnode->prev == NULL)
@@ -182,4 +147,64 @@ void RemoveNode(TransformList* list, TransformNode* lnode)
         list->tail = lnode->prev;
     else
         lnode->next->prev = lnode->prev;
+}
+
+/*-----------------------------------------------------------------------------
+ *  AppendNode
+ *  Add a Node to the end of the list
+ *-----------------------------------------------------------------------------*/
+void AppendNode(TransformList* list, TransformNode* lnode)
+{
+    if(list->root == NULL)
+    {
+        list->root = lnode;
+        lnode->prev = NULL;
+    }
+    else
+    {
+        list->tail->next = lnode;
+        lnode->prev = list->tail;
+    }
+    list->tail = lnode;
+    lnode->next = NULL;
+}
+
+/*-----------------------------------------------------------------------------
+ *  InsertNode
+ *  Insert a node at a specified place
+ *-----------------------------------------------------------------------------*/
+void InsertNode(TransformList* list, TransformNode* lnode, TransformNode* after)
+{
+    lnode->next = after->next;
+    lnode->prev = after;
+
+    if(after->next != NULL)
+        after->next->prev = lnode;
+    else
+        list->tail = lnode;
+    after->next = lnode;
+}
+
+/*-----------------------------------------------------------------------------
+ *  ClearList
+ *  Clears out a list
+ *-----------------------------------------------------------------------------*/
+void ClearList(TransformList* list)
+{
+    TransformNode* node = list->root;
+
+    while(node != NULL)
+    {
+        TransformNode* temp = node;
+
+        /* Advance to next node */
+        node = node->next;
+
+        /* Clear the node from the list */
+        RemoveNode(list, temp);
+
+        /* Free the data */
+        free(temp->data);
+        free(temp);
+    }
 }

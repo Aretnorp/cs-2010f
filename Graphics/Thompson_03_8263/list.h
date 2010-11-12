@@ -3,16 +3,26 @@
  *
  *       Filename:  list.h
  *
- *    Description:  
+ *    Description:  Provides an interface to a 2D transformation game. Levels are read
+ *                  from a file. Each level is a list of transformations. The users
+ *                  objective is to figure out the value of each of the transformations.
  *
  *        Version:  1.0
- *        Created:  10-11-11 09:08:02 AM
- *       Revision:  none
- *       Compiler:  gcc
+ *        Created:  11/11/2010 4:00:00 PM
  *
- *         Author:  YOUR NAME (), 
- *        Company:  
+ *         Author:  Cody Thompson
  *
+ *     Difficulty:  The most difficult aspects were the drag and drop functionality,
+ *                  and implementing a functional linked list within the assignment
+ *                  specification. Once the custom tailored Linked List was complete
+ *                  and the drag drop code properly implemented, the remaining
+ *                  sections fell into place. I would rate the level of difficulty at
+ *                  a 4, making it among the most difficult of Graphics assignments
+ *                  yet.
+ *     Objectives:  Receive a better grasp of Transformations within a 2D Space. Make
+ *                  use of Drag and Drop Mouse related functions in GLUT. Learn pop
+ *                  and push matrices. Implement a custom set of transformations within
+ *                  an assignment.
  * =====================================================================================
  */
 #ifndef _LIST_H_
@@ -53,7 +63,7 @@ typedef struct TransformList
 void AddNode( TransformList*, Transform* );
 void AppendNode( TransformList*, TransformNode* );
 void RemoveNode( TransformList*, TransformNode* );
-void InsertNode( TransformNode*, TransformNode* );
+void InsertNode( TransformList*, TransformNode*, TransformNode* );
 void PrintList( TransformList* );
 TransformNode* CreateNode( Transform* );
 
