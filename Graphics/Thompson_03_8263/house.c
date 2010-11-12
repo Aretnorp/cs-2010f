@@ -1,20 +1,28 @@
 /*
  * =====================================================================================
  *
- *       Filename:  Thompson_01_8263.c
+ *       Filename:  House.c
  *
- *    Description:  Provides an interface to create Star Polygons
+ *    Description:  Provides an interface to a 2D transformation game. Levels are read
+ *                  from a file. Each level is a list of transformations. The users
+ *                  objective is to figure out the value of each of the transformations.
  *
  *        Version:  1.0
- *        Created:  09/22/2010 10:38:14 AM
+ *        Created:  11/11/2010 4:00:00 PM
  *
  *         Author:  Cody Thompson
  *
- *     Difficulty:  The most difficult aspect was the calculation for Star Polygons.
- *                  It took an approximately an hour to come up with the calculation.
- *                  Overall, the project was very easy.
- *     Objectives:  To learn how to create a simple OpenGL application and understand
- *                  how viewports and line drawing works.
+ *     Difficulty:  The most difficult aspects were the drag and drop functionality,
+ *                  and implementing a functional linked list within the assignment
+ *                  specification. Once the custom tailored Linked List was complete
+ *                  and the drag drop code properly implemented, the remaining
+ *                  sections fell into place. I would rate the level of difficulty at
+ *                  a 4, making it among the most difficult of Graphics assignments
+ *                  yet.
+ *     Objectives:  Receive a better grasp of Transformations within a 2D Space. Make
+ *                  use of Drag and Drop Mouse related functions in GLUT. Learn pop
+ *                  and push matrices. Implement a custom set of transformations within
+ *                  an assignment.
  * =====================================================================================
  */
 
@@ -69,7 +77,7 @@ void ReadTransforms( char*, TransformList* );
 void RunTransformList( TransformList* );
 void CopyList( TransformList*, TransformList* );
 void CreateTransforms( TransformList*, int, int );
-
+void ReadLevel( FILE*, char* );
 
 /*-----------------------------------------------------------------------------
  *  Global Definitions
@@ -87,6 +95,10 @@ int selectedIndex = 0;
 TransformNode* selectedNode;
 TransformList* selectedList;
 int levelComplete = FALSE;
+int gameComplete = FALSE;
+
+char currentLevelString[BUF_SIZ];
+FILE* file;
 
 /*-----------------------------------------------------------------------------
  *  Main Function
@@ -107,7 +119,7 @@ int main( int argc, char *argv[] )
     glutInitWindowSize( 850, 450 );
 
     /* Create an application window on the screen */
-    glutCreateWindow( "Assignment #n: An Assignment" );
+    glutCreateWindow( "Assignment #3: 2D Transformations" );
 
     /* Register the function that does drawing */
     glutDisplayFunc( Draw );
@@ -123,7 +135,6 @@ int main( int argc, char *argv[] )
     glutReshapeFunc( Reshape );
 
     /* Enable GL Properties */
-    glEnable(GL_CULL_FACE);
     glEnable(GL_MULTISAMPLE);
 
     /* Register Exit Handler */
@@ -136,8 +147,10 @@ int main( int argc, char *argv[] )
     tlLevel.root = NULL;
     tlSelectedTransforms.root = NULL;
     tlAvailableTransforms.root = NULL;
-    ReadTransforms("tx 50,sx 2,rz 180", &tlLevel);
-    CopyList( &tlLevel, &tlAvailableTransforms );
+
+    /* Open the file */
+    file = fopen("level.dat", "r");
+    ReadLevel(file, currentLevelString);
 
     /* Turn over control to OpenGL */
     glutMainLoop();
@@ -236,7 +249,13 @@ void InitShapes( void )
  *-----------------------------------------------------------------------------*/
 void ClearMemory( void )
 {
-    //Clear our lists
+    /* Clear each list */
+    ClearList( &tlAvailableTransforms );
+    ClearList( &tlSelectedTransforms );
+    ClearList( &tlLevel );
+
+    /* Close the file */
+    fclose(file);
 }
 
 /*-----------------------------------------------------------------------------
@@ -253,7 +272,11 @@ void Draw( void )
     /* Clear the screen ... */
     glClear( GL_COLOR_BUFFER_BIT );
 
-    if(levelComplete)
+    if(gameComplete)
+    {
+        DrawText(-25.0, -25.0, DEFAULT_FONT, "GAME OVER! YOU WIN!");
+    }
+    else if(levelComplete)
     {
         DrawText(-25.0, -25.0, DEFAULT_FONT, "LEVEL COMPLETE!");
     }
@@ -320,7 +343,10 @@ void Draw( void )
 
         /* Compare the model */
         if(CompareMatrices(answer, attempt))
+        {
             levelComplete = TRUE;
+            glutPostRedisplay( );
+        }
     }
 
     /* Flush the buffer */
@@ -342,8 +368,27 @@ void Keyboard( unsigned char key, int x, int y )
             exit(0);
             break;
         default: 
-            if(levelComplete)
+            if(gameComplete)
+            {
+                exit(EXIT_SUCCESS);
+            }
+            else if(levelComplete)
+            {
+                /* Clear the Lists */
+                ClearList(&tlLevel);
+                ClearList(&tlSelectedTransforms);
+                ClearList(&tlAvailableTransforms);
+
+                /* Load the next level */
+                ReadLevel(file, currentLevelString);
+
+                /* Reset the pointers */
+                selectedIndex = 0;
+                selectedNode = NULL;
+
+                /* Clear the level */
                 levelComplete = FALSE;
+            }
             else /* Exit if another key was pressed */
                 return;
     }
@@ -361,6 +406,9 @@ void Mouse(int button, int state, int x, int y)
     GLuint nameBuffer[BUF_SIZ];
     GLint hits;
     GLint viewport[4];
+
+    if(levelComplete == TRUE)
+        return;
 
     if((button == GLUT_LEFT_BUTTON) && (state == GLUT_DOWN))
     {
@@ -524,8 +572,8 @@ void RunTransform(struct Transform *t)
         case 't': /* Translate */
             glTranslatef(x, y, 0); break;
         case 's': /* Scale */
-            if(x < 1) x = 1;
-            if(y < 1) y = 1;
+            if(x == 0) x = 1;
+            if(y == 0) y = 1;
             glScalef(x, y, 1); break;
         case 'r': /* Rotate */
             glRotatef(t->value, 0.0, 0.0, 1.0); break;
@@ -533,8 +581,8 @@ void RunTransform(struct Transform *t)
 }
 
 /*-----------------------------------------------------------------------------
- *  RunTransform
- *  Process the transformation given and apply it to the pipeline
+ *  ReadTransforms
+ *  Read a set of transforms from a string and transfer it into a file
  *-----------------------------------------------------------------------------*/
 void ReadTransforms(char* buf, TransformList *list)
 {
@@ -571,8 +619,8 @@ void ReadTransforms(char* buf, TransformList *list)
 
 
 /*-----------------------------------------------------------------------------
- *  RunTransform
- *  Process the transformation given and apply it to the pipeline
+ *  RunTransformList
+ *  Iterate through the list and execute the transforms in it
  *-----------------------------------------------------------------------------*/
 void RunTransformList(TransformList *list)
 {
@@ -644,6 +692,10 @@ void CreateTransforms(TransformList *list, int dimension, int start)
     }
 }
 
+/*-----------------------------------------------------------------------------
+ *  MouseMove
+ *  Handles when the mouse is moved in the window
+ *-----------------------------------------------------------------------------*/
 void MouseMove( int x, int y )
 {
     GLdouble objX, objY, objZ;
@@ -692,6 +744,11 @@ void MouseMove( int x, int y )
     }
 }
 
+/*-----------------------------------------------------------------------------
+ *  CompareMatrices
+ *  Compares matrix a with matrix b and returns TRUE or FALSE if they are
+ *  equivalent
+ *-----------------------------------------------------------------------------*/
 int CompareMatrices( GLdouble *a, GLdouble *b )
 {
     int i = 0;
@@ -701,4 +758,22 @@ int CompareMatrices( GLdouble *a, GLdouble *b )
         if( fabs(a[i] - b[i]) > EPSILON )
             return FALSE;
     return TRUE;
+}
+
+/*-----------------------------------------------------------------------------
+ *  ReadLevel
+ *  Read in the level file and set up the next list
+ *-----------------------------------------------------------------------------*/
+void ReadLevel(FILE* file, char* buf)
+{
+    /* Read the level */
+    fgets(buf, BUF_SIZ, file);
+    if(!feof(file))
+    {
+        /* Create the levels */
+        ReadTransforms(buf, &tlLevel);
+        CopyList( &tlLevel, &tlAvailableTransforms );
+    }
+    else
+        gameComplete = TRUE;
 }
