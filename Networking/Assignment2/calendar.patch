@@ -1,0 +1,81 @@
+*** calendar	2010-11-15 15:54:28.385103001 -0500
+--- calendar-new	2010-11-15 15:54:28.385103001 -0500
+***************
+*** 0 ****
+--- 1,75 ----
++ <?xml version="1.0"?>
++ <contents><![CDATA[ 
++ <table border="0" cellPadding="2" cellSpacing="2" width="100%">
++ 
++ <tr>
++       <td colspan="2" bgcolor="#f0f0f0">
++       <font face="Arial, Helvetica, sans-serif" size="2">
++       <b>4:00 PM - 6:00 PM on 11/15/10:</b>
++       </font>
++       </td>
++       </tr>
++       <tr>
++       <td width="20">
++       <img SRC="/images/spacer.gif" alt="" width="20" height="8" border="0">
++       </td>
++       <td width="100%">
++       <font face="Arial, Helvetica, sans-serif" size="2">
++       <a href='/webapps/blackboard/execute/editCalendarEvent?&course_id=_6169_1&editCalendarEventAction=view&context=personal&filter=all&view=day&event_id=_3826_1'>
++       <b>Assignment #2 Demo Due Today</b>
++       </a>
++       <br>
++ </font>
++       </td>
++       </tr>
++ <tr>
++       <td colspan="2" bgcolor="#f0f0f0">
++       <font face="Arial, Helvetica, sans-serif" size="2">
++       <b>4:00 PM - 5:00 PM on 11/21/10:</b>
++       </font>
++       </td>
++       </tr>
++       <tr>
++       <td width="20">
++       <img SRC="/images/spacer.gif" alt="" width="20" height="8" border="0">
++       </td>
++       <td width="100%">
++       <font face="Arial, Helvetica, sans-serif" size="2">
++       <a href='/webapps/blackboard/execute/editCalendarEvent?&course_id=_6169_1&editCalendarEventAction=view&context=personal&filter=all&view=day&event_id=_4332_1'>
++       <b>Assignment #2 Docs Due Today</b>
++       </a>
++       <br>
++ </font>
++       </td>
++       </tr>
++ <tr>
++       <td colspan="2" bgcolor="#f0f0f0">
++       <font face="Arial, Helvetica, sans-serif" size="2">
++       <b>4:00 PM - 6:00 PM on 11/22/10:</b>
++       </font>
++       </td>
++       </tr>
++       <tr>
++       <td width="20">
++       <img SRC="/images/spacer.gif" alt="" width="20" height="8" border="0">
++       </td>
++       <td width="100%">
++       <font face="Arial, Helvetica, sans-serif" size="2">
++       <a href='/webapps/blackboard/execute/editCalendarEvent?&course_id=_6169_1&editCalendarEventAction=view&context=personal&filter=all&view=day&event_id=_4329_1'>
++       <b>Lab 4 - Demo Due Today</b>
++       </a>
++       <br>
++ </font>
++       </td>
++       </tr>
++ <tr>
++ <td colspan="2" align="RIGHT">
++ <font face="Arial, Helvetica, sans-serif" size="2">
++ <a href="/webapps/blackboard/execute/viewCalendar?context=personal&filter=all&view=month">more...</a>
++ 
++ </font>
++ </td>
++ </tr>
++ </table>
++ 
++                  ]]></contents>
+\ No newline at end of file

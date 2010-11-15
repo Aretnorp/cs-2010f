@@ -1,0 +1,34 @@
+HTTP/1.1 200 OK
+Connection: close
+Date: Thu, 21 Oct 2010 03:00:03 GMT
+Server: Microsoft-IIS/6.0
+Set-Cookie: JSESSIONID=07D1410F19EC51CD3B1984A722B84792.root; Path=/webapps/login
+X-Blackboard-appserver: bblearnweb3.algonquincollege.com
+X-Blackboard-product: Blackboard Learn&#8482; 9.0.539.0
+Pragma: no-cache
+Cache-Control: no-cache
+Expires: Wed, 21 Oct 2009 03:00:02 GMT
+Last-Modified: Fri, 21 Oct 2011 03:00:02 GMT
+Set-Cookie: session_id=351840A04E9662768C2FD7B6316AEECE; Path=/
+Content-Type: text/html
+Content-Length: 976
+
+<HTML dir='ltr'><HEAD>
+<META HTTP-EQUIV="Pragma" CONTENT="no-cache"><META HTTP-EQUIV="Cache-Control" CONTENT="no-cache">
+<script language="Javascript">
+  cookie_name = "cookies_enabled";
+  document.cookie=cookie_name+"=yes";
+  if (!document.cookie) {
+    document.location.href="/nocookies.html";
+  }
+  document.cookie=cookie_name+"yes;expires=Thu, 01-Jan-1970 00:00:01 GMT";
+</script>
+<SCRIPT language="Javascript"><!--
+document.location.replace('http://online.algonquincollege.com/');
+//--></SCRIPT></HEAD>
+<BODY BGCOLOR='#FFFFFF' LINK='#000000' ALINK='#000000'>
+<br><br><br><br><center><hr width='350' height='5'><br>
+<font face='arial' size=3'><b>You are being redirected to another page</b>
+<p><font face='arial' size=3'><b>Please Wait...</b></font><br><br><hr width='350' height='5'>
+<br><A HREF='http://online.algonquincollege.com/'><font face='arial' size=3'><b>Click here to access the page to which you are being forwarded.</b></A>
+</BODY></HTML>
