@@ -65,6 +65,7 @@ void AppendNode( TransformList*, TransformNode* );
 void RemoveNode( TransformList*, TransformNode* );
 void InsertNode( TransformList*, TransformNode*, TransformNode* );
 void PrintList( TransformList* );
+void CopyList( TransformList*, TransformList* );
 TransformNode* CreateNode( Transform* );
 
 #endif /* _LIST_H_ */
