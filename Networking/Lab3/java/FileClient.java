@@ -30,7 +30,8 @@ public class FileClient
         }
 
         //Send the file
-        out.write(file);
+        out.write(file + "\n");
+        out.flush();
         
         //Print the file
         byte[] buf = new byte[1024];

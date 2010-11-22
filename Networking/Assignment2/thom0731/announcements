@@ -3,13 +3,18 @@
 <table border="0" cellPadding="2" cellSpacing="2" width="100%">
 
 		<tr>
-			<td><font face="Arial, Helvetica, sans-serif" size="2">
-			<li><a
-				href="/webapps/blackboard/execute/announcement?method=search&context=mybb&searchSelect=_1_1&viewChoice=1">
-			REMINDER - College Webmail Change for Students Happens This Week</a></li>
-			</font></td>
+			<td><font face="Arial, Helvetica, sans-serif" size="2"> No Institution Announcements have been posted in the last 7 days.</font></td>
 		</tr>
 		<tr>
+<td bgcolor="#f0f0f0">
+<font face="Arial, Helvetica, sans-serif" size="2">
+<b>
+10F_CST8165_010 Communications and Networks II
+</b>
+</font>
+</td>
+</tr>
+<tr><td colspan='2'><font face="Arial, Helvetica, sans-serif" size="2"><li><a href="/webapps/blackboard/execute/announcement?method=search&context=mybb&searchSelect=_6169_1">Assignment #2 - Local SMTP Server</a></li></font></td></tr><tr>
 <td bgcolor="#f0f0f0">
 <font face="Arial, Helvetica, sans-serif" size="2">
 <b>
@@ -18,7 +23,7 @@
 </font>
 </td>
 </tr>
-<tr><td colspan='2'><font face="Arial, Helvetica, sans-serif" size="2"><li><a href="/webapps/blackboard/execute/announcement?method=search&context=mybb&searchSelect=_6200_1">Lost & Found</a></li></font></td></tr><tr>
+<tr><td colspan='2'><font face="Arial, Helvetica, sans-serif" size="2"><li><a href="/webapps/blackboard/execute/announcement?method=search&context=mybb&searchSelect=_6200_1">Test 2</a></li></font></td></tr><tr>
 			<td align="RIGHT"><font face="Arial, Helvetica, sans-serif" size="2">
 		    <a
 				href="/webapps/blackboard/execute/announcement?method=search&context=mybb&viewChoice=3">more...</a>...

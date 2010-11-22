@@ -8,6 +8,7 @@ socket_connect($sock, $argv[1], intval($argv[2]));
 
 # Send the file name
 socket_send($sock, $argv[3], strlen($argv[3]), 0);
+sleep(1);
 
 # Open the file
 $file = fopen($argv[3], 'r') or die ("Could not open file\n");

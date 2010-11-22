@@ -33,11 +33,13 @@ TEST PLAN
 
     Expected Result:
         The program reads the current files and uses them. It only
-        overwrites them if the data on BlackBoard is different.
+        overwrites them if the data on BlackBoard is different and
+        only sends them only if they're different.
 
     Actual Result:
         The program reads the current files and uses them. It only
-        overwrites them if the data on BlackBoard is different.
+        overwrites them if the data on BlackBoard is different and
+        only sends them only if they're different.
 
 5. Run the application with the files either pre-existing or
    have them created at run-time. Login to BlackBoard using your
@@ -45,8 +47,10 @@ TEST PLAN
 
     Expected Result:
         The program detects the change in the Calendar. It updates
-        the running file and adds the changes.
+        the running file and adds the changes. It sends an e-mail
+        to the localhost server.
 
     Actual Result:
         The program detects the change in the Calendar. It updates
-        the running file and adds the changes.
+        the running file and adds the changes. It sends an e-mail
+        to the localhost server.

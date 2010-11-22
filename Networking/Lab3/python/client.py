@@ -1,6 +1,7 @@
 # Echo client program
 import socket
 import sys
+import time
 
 HOST = sys.argv[1]      # The remote host
 PORT = int(sys.argv[2]) # The same port as used by the server
@@ -15,6 +16,7 @@ f = open(FILE, "r")
 
 # Send the file name
 s.send(FILE)
+time.sleep(1)
 
 # Send the file
 s.send(f.read())

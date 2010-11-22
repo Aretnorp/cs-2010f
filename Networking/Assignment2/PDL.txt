@@ -23,6 +23,9 @@ BEGIN webbot
         IF FILE module EXISTS THEN
             IF CRC OF FILE module DOES NOT EQUAL CRC OF response THEN
                 WRITE response TO FILE module
+                OPEN connection TO smtp server
+                SEND HELO TO smtp server
+                SEND email TO smtp server
             END IF
         END IF
     END FOR

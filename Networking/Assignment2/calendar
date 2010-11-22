@@ -5,26 +5,6 @@
 <tr>
       <td colspan="2" bgcolor="#f0f0f0">
       <font face="Arial, Helvetica, sans-serif" size="2">
-      <b>4:00 PM - 6:00 PM on 11/15/10:</b>
-      </font>
-      </td>
-      </tr>
-      <tr>
-      <td width="20">
-      <img SRC="/images/spacer.gif" alt="" width="20" height="8" border="0">
-      </td>
-      <td width="100%">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      <a href='/webapps/blackboard/execute/editCalendarEvent?&course_id=_6169_1&editCalendarEventAction=view&context=personal&filter=all&view=day&event_id=_3826_1'>
-      <b>Assignment #2 Demo Due Today</b>
-      </a>
-      <br>
-</font>
-      </td>
-      </tr>
-<tr>
-      <td colspan="2" bgcolor="#f0f0f0">
-      <font face="Arial, Helvetica, sans-serif" size="2">
       <b>4:00 PM - 5:00 PM on 11/21/10:</b>
       </font>
       </td>
@@ -57,6 +37,26 @@
       <font face="Arial, Helvetica, sans-serif" size="2">
       <a href='/webapps/blackboard/execute/editCalendarEvent?&course_id=_6169_1&editCalendarEventAction=view&context=personal&filter=all&view=day&event_id=_4329_1'>
       <b>Lab 4 - Demo Due Today</b>
+      </a>
+      <br>
+</font>
+      </td>
+      </tr>
+<tr>
+      <td colspan="2" bgcolor="#f0f0f0">
+      <font face="Arial, Helvetica, sans-serif" size="2">
+      <b>4:00 PM - 5:00 PM on 11/28/10:</b>
+      </font>
+      </td>
+      </tr>
+      <tr>
+      <td width="20">
+      <img SRC="/images/spacer.gif" alt="" width="20" height="8" border="0">
+      </td>
+      <td width="100%">
+      <font face="Arial, Helvetica, sans-serif" size="2">
+      <a href='/webapps/blackboard/execute/editCalendarEvent?&course_id=_6169_1&editCalendarEventAction=view&context=personal&filter=all&view=day&event_id=_4333_1'>
+      <b>Lab 4 Doc's Due Today</b>
       </a>
       <br>
 </font>
