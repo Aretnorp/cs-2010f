@@ -206,7 +206,7 @@ int WriteData( char* fileName )
         length = CreateDelta( fileName );
 
         /* E-mail the Delta */
-        SendEmail( fileName );
+        SendEmail( EMAIL, "aretnorp", fileName );
     }
     else
         printf("%s checked, no changes were made!\n", fileName);
@@ -313,13 +313,140 @@ int CreateDelta( char* fileName )
         }
 }
 
+
 /** SendEmail
- *      Creates 
+ *      Opens up a connection with a given SMTP server
+ *      and sends an e-mail to it
+ *
+ *      @param e The file to open/create
+ *      @return The number of bytes written to the temp file
+ */
+void SendEmail(char* server, char* recipient, char* fileName)
+{
+        char buf[BUF_SIZ];
+        char deltaFile[BUF_SIZ];
+        int sockfd;
+        FILE *file = NULL;
+
+        /* Open the connection to the mail server*/
+        sockfd = CreateSocket(server, "25");
+        ReadLine(sockfd, buf);
+        sprintf(buf, "HELO %s\r\n", server);
+        SendLine(sockfd, buf);
+
+        /* Read the server response */
+        memset(buf, '\0', BUF_SIZ);
+        ReadLine(sockfd, buf);
+
+        /* Send in the mail headers */
+        sprintf( buf, "MAIL FROM: %s\r\n", "WebBot");
+        SendLine(sockfd, buf);
+        memset(buf, '\0', BUF_SIZ);
+        ReadLine(sockfd, buf);
+
+        sprintf( buf, "RCPT TO: %s\r\n", recipient);
+        SendLine(sockfd, buf);
+        memset(buf, '\0', BUF_SIZ);
+        ReadLine(sockfd, buf);
+
+        /* Send the mailbody */
+        sprintf( buf, "DATA\r\n");
+        SendLine(sockfd, buf);
+        memset(buf, '\0', BUF_SIZ);
+
+        ReadLine(sockfd, buf);
+        memset(buf, '\0', BUF_SIZ);
+
+        /* Open the file for read */
+        if ((file = fopen(fileName, "r"))==NULL)
+        {
+            perror("WEBBOT");
+            exit(EXIT_FAILURE);
+        }
+        fread(deltaFile, 1, BUF_SIZ, file);
+
+        /* Create Message */
+        sprintf( buf, "From: WebBot\r\n To: %s\r\n Subject: WebBot Update\r\nBody: %s\r\n.\r\n", recipient, deltaFile);
+        SendLine(sockfd, buf);
+        ReadLine(sockfd, buf);
+
+        /* Close the connection */
+        SendLine(sockfd, "QUIT");
+        fclose(file);
+        close(sockfd);
+}
+
+
+/** SendLine
+ *      Sending a line on a socket
+ *
+ *      @param sockfd The socket to send on
+ *      @param in The buffer reads from
+ */
+void SendLine(int sockfd, char* in)
+{
+    /* Send the line */
+    send(sockfd, in, strlen(in), 0);
+}
+
+/** ReadLine
+ *      Reading a line on a socket
+ *
+ *      @param sockfd The socket to send on
+ *      @param out The buffer to write too
+ */
+void ReadLine(int sockfd, char* out)
+{
+    int count;
+
+    /* Receive the line */
+    count = recv(sockfd, out, BUF_SIZ - 1, 0);
+
+    /* Add an EOL and newline to the buffer */
+    out[count]='\0';
+    printf("%s\n", out);
+}
+
+/** CreateSocket
+ *      Create a new socket based on a URL and Port
+ *
+ *      @param url The URL to connect too
+ *      @param port The port to connect too
+ */
+int CreateSocket(char *url, char* port)
+{
+        struct addrinfo hints, *res;
+        int sockfd;
+
+        /* Create the hints structs */
+        memset(&hints, 0, sizeof hints);
+        hints.ai_family = AF_UNSPEC;
+        hints.ai_socktype = SOCK_STREAM;
+        getaddrinfo(url, port, &hints, &res);
+
+        /* Create the Socket */
+        sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+
+        /* Connect the Socket */
+        if ((sockfd < 0) || (connect(sockfd, res->ai_addr, res->ai_addrlen) < 0))
+        {
+                perror("WEBBOT");
+                exit(EXIT_FAILURE);
+        }
+
+        /* Return the created socket */
+        return sockfd;
+}
+
+/** SendEmail
+ *      Sending an e-mail using the libCURL. Takes the cURL
+ *      object in the program and opens a connection with the
+ *      SMTP server
  *
  *      @param fileName The file to open/create
  *      @return The number of bytes written to the temp file
  */
-void SendEmail( char* fileName )
+void SendEmailCURL( char* fileName )
 {
     struct curl_slist *recipients = NULL;
 
@@ -346,7 +473,15 @@ void SendEmail( char* fileName )
     curl_slist_free_all(recipients);
 }
 
-
+/** ReadEmailBody
+ *      Writes the e-mail data, used for cURL
+ *
+ *      @param ptr Where the data is going
+ *      @param size The size of the members
+ *      @param nmemb The number of members
+ *      @param data The data (not used)
+ *      @return The number of bytes written
+ */
 size_t ReadEmailBody( void* ptr, size_t size, size_t nmemb, void* data )
 {
     if(g_sendEmail)
