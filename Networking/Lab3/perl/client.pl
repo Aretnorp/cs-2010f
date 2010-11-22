@@ -12,6 +12,7 @@ die "Could not create socket: $!\n" unless $sock;
 # Send the file name
 print "Client has: $ARGV[2] \n";
 print $sock $ARGV[2];
+sleep 1;
 
 # Open the file
 open FILE, "<$ARGV[2]" or die $!;

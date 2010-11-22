@@ -1,6 +1,6 @@
 /* PROGRAM:  q.c
-   AUTHOR:   Carolina Ayala
-   DATE:     Oct. 31 2010   
+   AUTHOR:   Carolina Ayala, Cody Thompson
+   DATE:     Nov 1st 2010   
    PURPOSE:  Coding question in Midterm
 */
 
@@ -37,18 +37,22 @@ int cubelist;
 /*
  * Square centred in ( 0, 0, 0 ) 
  */
-GLfloat vertices[][3] = {{ -0.5, -0, 1.0 },    { 0.5, -0, 1.0 },
+GLfloat thinRectangle[][3] = {{ -0.5, -0, 1.0 },    { 0.5, -0, 1.0 },
                          {  0.5,  3, 1.0 },    {-0.5,  3, 1.0 } };
-                         
+GLfloat thickRectangle[][3] = {{ -1, -0, 1.0 },    { 1, -0, 1.0 },
+                         {  1,  3, 1.0 },    {-1,  3, 1.0 } };
 /**************************************************************************/
 /* Declare function prototypes
  **************************************************************************/
 void Init( void );
 void Draw( void );
-void DrawSquare( void );
+void DrawThinSquare( void );
+void DrawThickSquare( void );
+void DrawTriangle( void );
 void DrawCoordinates( void );
+void DrawEllipse( void );
 void DrawCircle( int r, int sides );
-void DrawPolygon( int a, int b, int c, int d ); 
+void DrawPolygon( int a, int b, int c, int d );
 void keyPressed( unsigned char key, int x, int y);
 void MousePressed ( int button, int state, int mouseX, int mouseY );
 void ReshapeWindow( int w, int h );
@@ -117,7 +121,7 @@ void Draw()
     glPolygonMode( GL_FRONT,  GL_LINE );    
 
     /* Draw a Thick Rectangle */
-    DrawSquare();
+    DrawThickSquare();
 
     glTranslatef(0, 4, 0);
 
@@ -131,17 +135,17 @@ void Draw()
     glPushMatrix();
         /* Draw the Ellipse */
         glRotatef(30, 0, 0, 1);
-        DrawSquare();
+        DrawEllipse();
     glPopMatrix();
 
     /* Draw the Thin Rectangle */
     glRotatef(-30, 0, 0, 1);
-    DrawSquare();
+    DrawThinSquare();
 
     /* Draw the Triangle */
     glTranslatef(0, 3, 0);
-    glRotatef(70, 0, 0, 1);
-    DrawSquare();
+    glRotatef(100, 0, 0, 1);
+    DrawTriangle();
 
 
     glutSwapBuffers();
@@ -150,22 +154,10 @@ void Draw()
 /**************************************************************************/
 /* A function that draws a polygon with vertices a b c d 
  **************************************************************************/
-void DrawPolygon( int a, int b, int c, int d ) {
-        glBegin( GL_QUADS );
-                glVertex3fv( vertices[a] );
-                glVertex3fv( vertices[b] );
-                glVertex3fv( vertices[c] );
-                glVertex3fv( vertices[d] );
-        glEnd();
-}
-/**************************************************************************/
-/* A function that draws a polygon with vertices a b c d 
- **************************************************************************/
 void DrawCircle( int r, int sides ) {
         float inc = (2 * M_PI / sides);
         float i = 0.0f;
 
-        glColor3f(1.0, 1.0, 1.0);
         glBegin( GL_POLYGON );
             for(i = 0; i <= 2 * M_PI; i += inc)
                 glVertex3f(r * cos(i), r * sin(i), 1.0);
@@ -174,15 +166,48 @@ void DrawCircle( int r, int sides ) {
 /**************************************************************************/
 /* A function that draws a cube
  **************************************************************************/
-void DrawSquare( void ) 
+void DrawThickSquare( void )
 {
-        DrawPolygon( 0, 1, 2, 3 );
+    glBegin( GL_QUADS );
+        glVertex3fv( thickRectangle[0] );
+        glVertex3fv( thickRectangle[1] );
+        glVertex3fv( thickRectangle[2] );
+        glVertex3fv( thickRectangle[3] );
+    glEnd();
+}
+void DrawThinSquare( void )
+{
+    glBegin( GL_QUADS );
+        glVertex3fv( thinRectangle[0] );
+        glVertex3fv( thinRectangle[1] );
+        glVertex3fv( thinRectangle[2] );
+        glVertex3fv( thinRectangle[3] );
+    glEnd();
+}
+void DrawEllipse( void )
+{
+    glBegin( GL_TRIANGLE_FAN );
+        glVertex3f( 0, 2, 1 );
+        glVertex3f( 0, 4, 1 );
+        glVertex3f( -0.25, 3, 1 );
+        glVertex3f( -0.5, 2, 1 );
+        glVertex3f( -0.25, 1, 1 );
+        glVertex3f( 0, 0, 1 );
+        glVertex3f( 0, 4, 1 );
+    glEnd();
+}
+void DrawTriangle( void )
+{
+    glBegin( GL_TRIANGLES );
+        glVertex3f( -0.5, 0, 1 );
+        glVertex3f( 0.5, 0, 1 );
+        glVertex3f( 0, 3, 1 );
+    glEnd();
 }
 /**************************************************************************/
 /* Draws coordinate systems
  **************************************************************************/
 void DrawCoordinates( void  ){
-  glColor3f( 1.0, 0.0, 0.0 );
   glBegin( GL_LINES );
         glVertex3f( -100,    0.0, 0.0);
         glVertex3f(  100,    0.0, 0.0);

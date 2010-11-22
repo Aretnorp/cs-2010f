@@ -45,7 +45,7 @@ public class FileServer
         String name = in.readLine();
 
         //Create the file stream
-        FileOutputStream out = new FileOutputStream(name);
+        FileOutputStream out = new FileOutputStream(dir + "/" + name);
 
         //Read from the socket	
         byte[] buf = new byte[1024];

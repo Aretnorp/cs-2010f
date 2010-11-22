@@ -1,15 +1,15 @@
 HTTP/1.1 200 OK
 Connection: close
-Date: Mon, 15 Nov 2010 20:54:23 GMT
+Date: Mon, 22 Nov 2010 00:20:58 GMT
 Server: Microsoft-IIS/6.0
-Set-Cookie: JSESSIONID=4BFCB8D81DC2210BBEBCFBD5886B110D.root; Path=/webapps/login
+Set-Cookie: JSESSIONID=C057A2D0782F35651C357377053FA6C8.root; Path=/webapps/login
 X-Blackboard-appserver: bblearnweb4.algonquincollege.com
 X-Blackboard-product: Blackboard Learn&#8482; 9.0.539.0
 Pragma: no-cache
 Cache-Control: no-cache
-Expires: Sun, 15 Nov 2009 20:54:23 GMT
-Last-Modified: Tue, 15 Nov 2011 20:54:23 GMT
-Set-Cookie: session_id=583A3FC8AF0A4E150E60D928E9BF27E6; Path=/
+Expires: Sun, 22 Nov 2009 00:20:58 GMT
+Last-Modified: Tue, 22 Nov 2011 00:20:58 GMT
+Set-Cookie: session_id=9CB3198B0AA3F64506D65D05D3E7EFBF; Path=/
 Content-Type: text/html
 Content-Length: 976
 

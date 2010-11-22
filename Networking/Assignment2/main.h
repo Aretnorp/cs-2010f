@@ -28,6 +28,8 @@
 
 #include <curl/curl.h>
 
+#include <netdb.h>
+
 #include "crc/crc.h"
 
 /*-----------------------------------------------------------------------------
@@ -62,8 +64,8 @@
 #define EMAILBODY \
 "From: %s\r\n" \
 "To: %s\r\n" \
-"Subject: %s\r\n\r\n" \
-"%s\r\n\r\n"
+"Subject: Updated %s\r\n\r\n" \
+"%s"
 
 /*-----------------------------------------------------------------------------
  *  Function Definitions
@@ -78,6 +80,10 @@ int CreateDelta( char* );
 
 FILE* OpenFile( char* );
 
-void SendEmail( char* );
+void ReadLine( int, char* );
+void SendLine( int, char* );
+void SendEmail( char*, char*, char* );
+int CreateSocket( char*, char* );
 
+void SendEmailCURL( char* );
 size_t ReadEmailBody( void*, size_t, size_t, void* );
