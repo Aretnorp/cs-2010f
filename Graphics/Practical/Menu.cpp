@@ -14,10 +14,11 @@
 #include "Menu.h"
 
 bool positionMode = true;
-bool jointMode = false;
-bool resetMode = false;
 bool lightMode = false;
-bool flatShade = true;
+bool globalLight = false;
+bool positionalLight = false;
+
+Transformations transforms;
 
 /*-----------------------------------------------------------------------------
 *  CreateMiddleMenu
@@ -26,15 +27,20 @@ bool flatShade = true;
 void CreateMiddleMenu()
 {
     /* Create the Sub Menu */
-    int fillMode = glutCreateMenu(Menu);
-    glutAddMenuEntry("1. On / Off", MENU_ON_OFF);
-    glutAddMenuEntry("2. Flat / Smooth", MENU_FLAT_SMOOTH);
+    int interactiveMode = glutCreateMenu(Menu);
+    glutAddMenuEntry("1. Rotate", MENU_ROTATE);
+    glutAddMenuEntry("2. Translate", MENU_TRANSLATE);
+    glutAddMenuEntry("3. Scale", MENU_SCALE);
+
+    int lightMode = glutCreateMenu(Menu);
+    glutAddMenuEntry("1. Global Light", MENU_GLOBAL);
+    glutAddMenuEntry("2. Positional Light", MENU_POSITIONAL);
 
     /* Create the Main Menu */
     glutCreateMenu(Menu);
-    glutAddMenuEntry("1. Position / Orientation", MENU_POS);
-    glutAddMenuEntry("2. Reset", MENU_RESET);
-    glutAddSubMenu("3. Light", fillMode);
+    glutAddSubMenu("1. Interactive", interactiveMode);
+    glutAddSubMenu("2. Light", lightMode);
+    glutAddMenuEntry("3. Reset", MENU_RESET);
     glutAddMenuEntry("4. Exit", MENU_EXIT);
 
     /* Attach the menu */
@@ -49,22 +55,35 @@ void Menu(int item)
 {
     switch(item)
     {
-    case MENU_POS:
-        positionMode = !positionMode; break;
+    case MENU_ROTATE:
+        transforms.SetType(ROTATE); break;
+    case MENU_TRANSLATE:
+        transforms.SetType(TRANSLATE); break;
+    case MENU_SCALE:
+        transforms.SetType(SCALE); break;
 
-    case MENU_RESET:
-        resetMode = !resetMode;
-        Reset( );
+    case MENU_GLOBAL:
+        if(globalLight)
+        {
+            /* Disable the positional */
+            if(positionalLight) positionalLight = false;
+            globalLight = false;
+        }
+        else
+            globalLight = true;
         break;
 
-    case MENU_ON_OFF:
-        lightMode = !lightMode; break;
+    case MENU_POSITIONAL:
+        if(globalLight)
+            positionalLight = !positionalLight;
+        break;
 
-    case MENU_FLAT_SMOOTH:
-        flatShade = !flatShade; break;
+    case MENU_RESET:
+        Reset( ); break;
 
     case MENU_EXIT:
         exit(EXIT_SUCCESS); break;
+
     }
 
     /* Update the display */

@@ -21,6 +21,19 @@ int rotY = 0;
 float traX = 0;
 float traY = 0;
 bool isRightButton = false;
+int index;
+
+
+
+#define P1 0.000000, 0.000000,  2.000000
+#define P2 1.902113, 0.000000,  0.618034
+#define P3 1.175570, 0.000000, -1.618034
+
+#define P4 -1.175571, 0.000000, -1.618034
+#define P5 -1.902113, 0.000000,  0.618034
+
+#define TOP 0.0, 1.0, 0.0
+#define BOTTOM 0.0, -1.0, 0.0
 
 /*-----------------------------------------------------------------------------
 *  Main Function
@@ -70,6 +83,9 @@ int main( int argc, char *argv[] )
     /* Create the Menu */
     CreateMiddleMenu( );
 
+    /* Create the Shape */
+    CreatePrimitive( );
+
     /* Turn over control to OpenGL */
     glutMainLoop();
 
@@ -99,66 +115,34 @@ void Draw( void )
     /* Enable the lighting */
     EnableLighting( );
 
+    /* Set the correct render mode */
+    if((positionalLight) || (globalLight))
+        glPolygonMode(GL_FRONT, GL_FILL);
+    else
+        glPolygonMode(GL_FRONT, GL_LINE);
+
+    glPushMatrix( );
+        /* Draw the world coordinate system */
+        glColor3f(0.0, 0.0, 1.0);
+        glCallList(index + 1);
+    glPopMatrix( );
+
     /* Rotate the world */
     glPushMatrix( );
-        /* Translate */
-        glTranslatef(traX, traY, 0);
-        glRotatef(rotX, 1.0, 0.0, 0.0);
-        glRotatef(rotY, 0.0, 1.0, 0.0);
+        /* Use the user transformations */
+        transforms.GetTranslate( );
+        transforms.GetRotation( );
+
+        /* Draw the Coordinate system */
+        glColor3f(1.0, 0.0, 0.0);
+        glCallList(index + 1);
+
+        /* Scale the system */
+        transforms.GetScale( );
 
         /* Draw the Shape */
-        glBegin(GL_QUADS);
-            /* Right Side */
-            CalculateSmoothNormal(1.0, 1.0, -1.0);
-            glVertex3f(1.0, 1.0, -1.0);
-            CalculateSmoothNormal(1.0, 1.0, 1.0);
-            glVertex3f(1.0, 1.0, 1.0);
-            CalculateSmoothNormal(1.0, -1.0, 1.0);
-            glVertex3f(1.0, -1.0, 1.0);
-            CalculateSmoothNormal(1.0, -1.0, -1.0);
-            glVertex3f(1.0, -1.0, -1.0);
-
-            /* Left Side */
-            CalculateSmoothNormal(-1.0, 1.0, 1.0);
-            glVertex3f(-1.0, 1.0, 1.0);
-            CalculateSmoothNormal(-1.0, 1.0, -1.0);
-            glVertex3f(-1.0, 1.0, -1.0);
-            CalculateSmoothNormal(-1.0, -1.0, -1.0);
-            glVertex3f(-1.0, -1.0, -1.0);
-            CalculateSmoothNormal(-1.0, -1.0, 1.0);
-            glVertex3f(-1.0, -1.0, 1.0);
-        glEnd( );
-
-        glBegin(GL_QUAD_STRIP);
-            /* First Face */
-            CalculateSmoothNormal(-1.0, -1.0, 1.0);
-            glVertex3f(-1.0, -1.0, 1.0);
-            CalculateSmoothNormal(1.0, -1.0, 1.0);
-            glVertex3f(1.0, -1.0, 1.0);
-            CalculateSmoothNormal(-1.0, 1.0, 1.0);
-            glVertex3f(-1.0, 1.0, 1.0);
-            CalculateSmoothNormal(1.0, 1.0, 1.0);
-            glVertex3f(1.0, 1.0, 1.0);
-
-            /* Top face */
-            CalculateSmoothNormal(-1.0, 1.0, -1.0);
-            glVertex3f(-1.0, 1.0, -1.0);
-            CalculateSmoothNormal(1.0, 1.0, -1.0);
-            glVertex3f(1.0, 1.0, -1.0);
-
-            /* Back face */
-            CalculateSmoothNormal(-1.0, -1.0, -1.0);
-            glVertex3f(-1.0, -1.0, -1.0);
-            CalculateSmoothNormal(1.0, -1.0, -1.0);
-            glVertex3f(1.0, -1.0, -1.0);
-
-            /* Bottom face */
-            CalculateSmoothNormal(-1.0, -1.0, 1.0);
-            glVertex3f(-1.0, -1.0, 1.0);
-            CalculateSmoothNormal(1.0, -1.0, 1.0);
-            glVertex3f(1.0, -1.0, 1.0);
-        glEnd( );
-
+        glColor3f(1.0, 1.0, 1.0);
+        glCallList(index);
     glPopMatrix( );
 
     /* Flush the buffer */
@@ -173,34 +157,57 @@ void Draw( void )
 *-----------------------------------------------------------------------------*/
 void Keyboard( unsigned char key, int x, int y )
 {
-    if(key == 27) /* Escape key */
+    if((key == 27) || (key == 'Q')) /* Escape key */
             exit(0);
     else if(positionMode)
     {
-    /* Determine which key is pressed */
-    switch(key)
-    {
-    case 'a': /* Rotate left */
-            rotY -= 5; break;
-    case 'A':
-            rotY -= 15; break;
-    case 'd': /* Rotate right */
-            rotY += 5; break;
-    case 'D':
-            rotY += 15; break;
-    case 'w': /* Rotate up */
-            rotX += 5; break;
-    case 'W':
-            rotX += 15; break;
-    case 's': /* Rotate down */
-            rotX -= 5; break;
-    case 'S':
-            rotX -= 15; break;
-    default: return; /* Exit if another key was pressed */
-    }
+        /* Determine which key is pressed */
+        switch(key)
+        {
+        case 'a': /* Rotate left */
+                rotY -= 5; break;
+        case 'A':
+                rotY -= 15; break;
+        case 'd': /* Rotate right */
+                rotY += 5; break;
+        case 'D':
+                rotY += 15; break;
+        case 'w': /* Rotate up */
+                rotX += 5; break;
+        case 'W':
+                rotX += 15; break;
+        case 's': /* Rotate down */
+                rotX -= 5; break;
+        case 'S':
+                rotX -= 15; break;
 
-    /* Redraw the Display */
-    glutPostRedisplay();
+
+        /* Assignment Specification Keys */
+        case 'R':
+                Reset( ); break;
+        case 'x':
+                transforms.SetX(-15); break;
+        case 'X':
+                transforms.SetX(+15); break;
+        case 'y':
+                transforms.SetY(-15); break;
+        case 'Y':
+                transforms.SetY(+15); break;
+        case 'z':
+                transforms.SetZ(-15); break;
+        case 'Z':
+                transforms.SetZ(+15); break;
+        case 'l':
+        case 'L':
+                Menu(MENU_GLOBAL); break;
+        case 'p':
+        case 'P':
+                Menu(MENU_POSITIONAL); break;
+        default: return; /* Exit if another key was pressed */
+        }
+
+        /* Redraw the Display */
+        glutPostRedisplay();
     }
 }
 
@@ -414,6 +421,9 @@ void Reset( void )
 {
     /* Default all rotations and translations */
     rotX = rotY = traX = traY = 0;
+
+    /* Default all rotations and translations */
+    transforms.Reset();
 }
 
 /*-----------------------------------------------------------------------------
@@ -422,31 +432,97 @@ void Reset( void )
  *-----------------------------------------------------------------------------*/
 void EnableLighting( void )
 {
-    if(lightMode)
-    {
-        /* Create a Light Position */
-        GLfloat lightPos[] = { 0, 0, 10, 1 };
+    /* Create a Light Position */
+    GLfloat lightPos[] = { 10, 10, 10, 1 };
 
-        /* Enable the lighting */
-        glEnable(GL_LIGHTING);
-        glEnable(GL_LIGHT0);
-        glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+    /* Enable the lighting */
+    if(globalLight) glEnable(GL_LIGHTING);
+    else glDisable(GL_LIGHTING);
 
-        /* Enable the Material colors */
-        glColorMaterial(GL_FRONT, GL_DIFFUSE);
-        glEnable(GL_NORMALIZE);
+    if(positionalLight) glEnable(GL_LIGHT0);
+    else glDisable(GL_LIGHT0);
 
-        /* Enable the Shading */
-        flatShade? glShadeModel(GL_FLAT) :
-                            glShadeModel(GL_SMOOTH);
-    }
-    else
-    {
-        /* Disable the Lighting */
-        glDisable(GL_LIGHTING);
-        glDisable(GL_LIGHT0);
-        glDisable(GL_NORMALIZE);
-        glDisable(GL_COLOR_MATERIAL);
-    }
+    glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+
+    /* Enable the Material colors */
+    glColorMaterial(GL_FRONT, GL_DIFFUSE);
+    glEnable(GL_NORMALIZE);
+
+    /* Enable the Shading */
+    glShadeModel(GL_SMOOTH);
 }
 
+
+/*-----------------------------------------------------------------------------
+ *  CreatePrimitive
+ *  Instantiate the primitives
+ *-----------------------------------------------------------------------------*/
+void CreatePrimitive( void )
+{
+    /* Create the list */
+    index = glGenLists(2);
+
+    /* Define the list */
+    glNewList(index, GL_COMPILE);
+        GLfloat value[] = { 0.0, 1.0, 0.0, 1.0 };
+        glMaterialfv(GL_FRONT, GL_SPECULAR, value);
+        glMaterialfv(GL_FRONT, GL_AMBIENT, value);
+        glMaterialfv(GL_FRONT, GL_DIFFUSE, value);
+        glMaterialf (GL_FRONT, GL_SHININESS, 15 );
+
+        /* Draw the Top Pyramid */
+        glBegin(GL_TRIANGLE_FAN);
+            GetSmoothNormals(TOP);
+            glVertex3f(TOP);
+            GetSmoothNormals(P1);
+            glVertex3f(P1);
+            GetSmoothNormals(P2);
+            glVertex3f(P2);
+
+            GetSmoothNormals(P3);
+            glVertex3f(P3);
+            GetSmoothNormals(P4);
+            glVertex3f(P4);
+            GetSmoothNormals(P5);
+            glVertex3f(P5);
+            GetSmoothNormals(P1);
+            glVertex3f(P1);
+        glEnd( );
+
+        /* Draw the Bottom Pyramid */
+        glBegin(GL_TRIANGLE_FAN);
+            GetSmoothNormals(BOTTOM);
+            glVertex3f(BOTTOM);
+            GetSmoothNormals(P1);
+            glVertex3f(P1);
+            GetSmoothNormals(P5);
+            glVertex3f(P5);
+
+            GetSmoothNormals(P4);
+            glVertex3f(P4);
+            GetSmoothNormals(P3);
+            glVertex3f(P3);
+            GetSmoothNormals(P2);
+            glVertex3f(P2);
+            GetSmoothNormals(P1);
+            glVertex3f(P1);
+        glEnd( );
+    glEndList( );
+
+    /* Create a Coordinate System */
+    glNewList(index + 1, GL_COMPILE);
+        glBegin(GL_LINES);
+            /* X axis */
+            glVertex3f(0.0, 0.0, 0.0);
+            glVertex3f(1.0, 0.0, 0.0);
+
+            /* Y axis */
+            glVertex3f(0.0, 0.0, 0.0);
+            glVertex3f(0.0, 1.0, 0.0);
+
+            /* Z axis */
+            glVertex3f(0.0, 0.0, 0.0);
+            glVertex3f(0.0, 0.0, 1.0);
+        glEnd( );
+    glEndList( );
+}

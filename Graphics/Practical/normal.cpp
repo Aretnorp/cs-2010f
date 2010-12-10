@@ -60,7 +60,7 @@ float *UnitNormal(     float pointAx, float pointAy, float pointAz,
 #undef SQR
 }
 
-void CalculateSmoothNormal(float x, float y, float z)
+void GetSmoothNormals(float x, float y, float z)
 {
     /* Calculate the normal */
     float normal = sqrtf((x * x) + (y * y) + (z * z));

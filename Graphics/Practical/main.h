@@ -51,5 +51,6 @@ void Mouse(int button, int state, int x, int y);
 void MouseMove( int x, int y );
 void Reset( void );
 void EnableLighting( void );
+void CreatePrimitive( void );
 
 #endif

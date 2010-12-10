@@ -8,7 +8,8 @@ LIBS = \
 #Compiler options
 CXXSOURCES = main.cpp \
 	     Menu.cpp \
-	     normal.cpp 
+	     normal.cpp \
+	     Transformations.cpp
 CXXOBJECTS = $(CXXSOURCES:.cpp=.o)
 CXXFLAGS   = -g $(INCLUDEDIRS)
 CXX        = gcc
@@ -28,6 +29,9 @@ Menu.o: Menu.cpp
 
 normal.o: normal.cpp
 	$(CXX) -c -o $@ normal.cpp $(LDFLAGS)
+
+Transformations.o: Transformations.cpp
+	$(CXX) -c -o $@ Transformations.cpp $(LDFLAGS)
 
 clean:
 	$(RM) -f $(CXXOBJECTS) $(PROGRAM)

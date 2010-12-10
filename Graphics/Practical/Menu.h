@@ -15,21 +15,26 @@
 #define __MENU_H_
 #include <GL/freeglut.h>
 #include "main.h"
+#include "Transformations.h"
 
 enum MENU_TYPE
 {
-    MENU_POS,
-    MENU_JOINTS,
+    MENU_ROTATE,
+    MENU_TRANSLATE,
+    MENU_SCALE,
+    MENU_GLOBAL,
+    MENU_POSITIONAL,
     MENU_RESET,
-    MENU_ON_OFF,
-    MENU_FLAT_SMOOTH,
     MENU_EXIT,
 };
 
+
 extern bool positionMode;
-extern bool resetMode;
 extern bool lightMode;
-extern bool flatShade;
+extern bool globalLight;
+extern bool positionalLight;
+
+extern Transformations transforms;
 
 void CreateMiddleMenu();
 void Menu(int);

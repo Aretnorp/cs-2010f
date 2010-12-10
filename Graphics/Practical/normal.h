@@ -22,4 +22,4 @@ float *UnitNormal(     float pointAx, float pointAy, float pointAz,
                        float pointBx, float pointBy, float pointBz,
                        float pointCx, float pointCy, float pointCz );
 
-void CalculateSmoothNormal(float x, float y, float z);
+void GetSmoothNormals(float x, float y, float z);
