@@ -16,14 +16,7 @@
 /*-----------------------------------------------------------------------------
 *  Variable Definitions
 *-----------------------------------------------------------------------------*/
-int rotX = 0;
-int rotY = 0;
-float traX = 0;
-float traY = 0;
-bool isRightButton = false;
 int index;
-
-
 
 #define P1 0.000000, 0.000000,  2.000000
 #define P2 1.902113, 0.000000,  0.618034
@@ -34,6 +27,8 @@ int index;
 
 #define TOP 0.0, 1.0, 0.0
 #define BOTTOM 0.0, -1.0, 0.0
+
+GLfloat lightPos[] = { 2.5, 2.5, 2.5, 1 };
 
 /*-----------------------------------------------------------------------------
 *  Main Function
@@ -61,16 +56,9 @@ int main( int argc, char *argv[] )
 
     /* Create the Keyboard callback */
     glutKeyboardFunc( Keyboard );
-    glutSpecialFunc( SpecialKeyboard );
 
     /* Create the Reshape callback */
     glutReshapeFunc( Reshape );
-
-    /* Create the Mouse callback */
-    glutMouseFunc( Mouse );
-
-    /* Create the Motion callback */
-    glutMotionFunc( MouseMove );
 
     /* Register Exit Handler */
     atexit(ClearMemory);
@@ -125,6 +113,13 @@ void Draw( void )
         /* Draw the world coordinate system */
         glColor3f(0.0, 0.0, 1.0);
         glCallList(index + 1);
+        
+        /* Draw the Light point */
+        glColor3f(1.0, 1.0, 0.0);
+        glPointSize(5);
+        glBegin(GL_POINTS);
+            glVertex4fv(lightPos);
+        glEnd( );
     glPopMatrix( );
 
     /* Rotate the world */
@@ -164,76 +159,59 @@ void Keyboard( unsigned char key, int x, int y )
         /* Determine which key is pressed */
         switch(key)
         {
-        case 'a': /* Rotate left */
-                rotY -= 5; break;
-        case 'A':
-                rotY -= 15; break;
-        case 'd': /* Rotate right */
-                rotY += 5; break;
-        case 'D':
-                rotY += 15; break;
-        case 'w': /* Rotate up */
-                rotX += 5; break;
-        case 'W':
-                rotX += 15; break;
-        case 's': /* Rotate down */
-                rotX -= 5; break;
-        case 'S':
-                rotX -= 15; break;
-
-
         /* Assignment Specification Keys */
         case 'R':
                 Reset( ); break;
         case 'x':
-                transforms.SetX(-15); break;
+                if(!lightMode)
+                    transforms.SetX(-15);
+                else
+                    lightPos[0] -= 0.5;
+                break;
         case 'X':
-                transforms.SetX(+15); break;
+                if(!lightMode)
+                    transforms.SetX(+15);
+                else
+                    lightPos[0] += 0.5;
+                break;
         case 'y':
-                transforms.SetY(-15); break;
+                if(!lightMode)
+                    transforms.SetY(-15);
+                else
+                    lightPos[1] -= 0.5;
+                break;
         case 'Y':
-                transforms.SetY(+15); break;
+                if(!lightMode)
+                    transforms.SetY(+15);
+                else
+                    lightPos[1] += 0.5;
+                break;
         case 'z':
-                transforms.SetZ(-15); break;
+                if(!lightMode)
+                    transforms.SetZ(-15);
+                else
+                    lightPos[2] -= 0.5;
+                break;
         case 'Z':
-                transforms.SetZ(+15); break;
+                if(!lightMode)
+                    transforms.SetZ(+15);
+                else
+                    lightPos[2] += 0.5;
+                break;
         case 'l':
         case 'L':
                 Menu(MENU_GLOBAL); break;
         case 'p':
         case 'P':
                 Menu(MENU_POSITIONAL); break;
+        case 'm':
+        case 'M':
+                lightMode = !lightMode; break;
         default: return; /* Exit if another key was pressed */
         }
 
         /* Redraw the Display */
         glutPostRedisplay();
-    }
-}
-
-/*-----------------------------------------------------------------------------
-*  SpecialKeyboard
-*  Handles the special keyboard input for each of the various buttons
-*-----------------------------------------------------------------------------*/
-void SpecialKeyboard( int key, int x, int y )
-{
-    if(positionMode)
-    {
-    switch(key)
-    {
-    case GLUT_KEY_LEFT:
-            traX -= 0.1; break;
-    case GLUT_KEY_RIGHT:
-            traX += 0.1; break;
-    case GLUT_KEY_UP:
-            traY += 0.1; break;
-    case GLUT_KEY_DOWN:
-            traY -= 0.1; break;
-    default: return; /* Exit if another key was pressed */
-    }
-
-    /* Redraw the Display */
-    glutPostRedisplay();
     }
 }
 
@@ -265,165 +243,16 @@ void Reshape( int width, int height )
 }
 
 /*-----------------------------------------------------------------------------
-*  Mouse
-*  Handles Mouse Movement and Selection
-*-----------------------------------------------------------------------------*/
-void Mouse(int button, int state, int x, int y)
-{
-    GLuint nameBuffer[BUF_SIZ];
-    GLint hits;
-    GLint viewport[4];
-
-    /* Handle the Left Mouse selection */
-    if((button == GLUT_LEFT_BUTTON) && (state == GLUT_DOWN))
-    {
-        /* Get the Viewport and set to Projection */
-        glGetIntegerv( GL_VIEWPORT, viewport );
-        glSelectBuffer(BUF_SIZ, nameBuffer);
-        glRenderMode(GL_SELECT);
-
-        /* Initialize Object Drawing */
-        glInitNames( );
-        glPushName( 0 );
-
-        /* Save the Projection matrix */
-        glMatrixMode( GL_PROJECTION );
-        glPushMatrix( );
-        glLoadIdentity( );
-        gluPickMatrix( (GLdouble)x, (GLdouble)(viewport[3] - y),
-                N, N, viewport );
-
-        /* Configure Perspective to proper aspect ratio */
-        int width = glutGet(GLUT_WINDOW_WIDTH);
-        int height = glutGet(GLUT_WINDOW_HEIGHT);
-        gluPerspective( 60.0, width / height, 1.0, 1000 );
-
-        /* Enable Picking mode */
-        glMatrixMode(GL_MODELVIEW);
-
-        /* Redraw Scene with Picking enabled */
-        Draw( );
-
-        /* Reset Projection */
-        glMatrixMode( GL_PROJECTION );
-        glPopMatrix( );
-
-        /* Get the number of hits */
-        hits = glRenderMode( GL_RENDER );
-        ProcessHits( hits, nameBuffer );
-
-        /* Call a movement */
-        //MouseMove( x, y );
-
-        /* Draw the display */
-        glMatrixMode( GL_MODELVIEW );
-        glutPostRedisplay( );
-    }
-
-    /* Configure the Right Mouse button detection */
-    else if((button == GLUT_RIGHT_BUTTON) && (state == GLUT_DOWN))
-            isRightButton = true;
-    else if((button == GLUT_RIGHT_BUTTON) && (state == GLUT_UP))
-            isRightButton = false;
-}
-
-/*-----------------------------------------------------------------------------
-*  CreateText
-*  Draws a set of text using the GLUT bitmap String for a location at x and
-*  y for a set font and buf
-*-----------------------------------------------------------------------------*/
-void CreateText( float x, float y, void* font, char* buf) 
-{
-    /* Set the color */
-    glColor3f(0.0, 0.7, 0.0);
-
-    /* Set the position */
-    glRasterPos2f(x, y);
-
-    /* Print the text */
-    glutBitmapString(font, (const unsigned char*)buf);
-}
-
-/*-----------------------------------------------------------------------------
- *  ProcessHits
- *  Processes which items have been clicked
- *-----------------------------------------------------------------------------*/
-void ProcessHits( GLint hits, GLuint buffer[] ) 
-{
-    GLuint i, j;
-    GLuint names, *ptr;
-
-
-    ptr = buffer;
-    for(i = 0; i < hits; ++i)
-    {
-        names = *ptr;
-
-        /* Skip over number of names and depths */
-        ptr += 3;
-
-        /* Check each name in the records */
-        for(j = 0; j < names; ++j)
-        {
-            if(*ptr != 0)
-            {
-                /* Do some selection */
-            }
-
-            /* Go to the next hit record */
-            ptr++;
-        }
-    }
-}
-
-/*-----------------------------------------------------------------------------
- *  MouseMove
- *  Handles when the mouse is moved in the window
- *-----------------------------------------------------------------------------*/
-void MouseMove( int x, int y )
-{
-    GLdouble objX, objY, objZ;
-    GLfloat winX, winY;
-    GLfloat deltaX, deltaY;
-    GLint view[4];
-    GLdouble p[MATRIX_SIZE];
-    GLdouble m[MATRIX_SIZE];
-    GLdouble z;
-
-    /* Get the matrices and the viewport */
-    glGetDoublev( GL_PROJECTION_MATRIX, p );
-    glGetDoublev( GL_MODELVIEW_MATRIX, m );
-    glGetIntegerv( GL_VIEWPORT, view );
-
-    /* Get the window coordinates */
-    winX = (float)x;
-    winY = (float)view[3] - (float)y;
-
-    /* Unproject the coordinates from the window */
-    gluUnProject( winX, winY, 0.5, m, p, view, &objX, &objY, &objZ );
-
-    /* Check for selected items */
-//    if(!Picking::IsEmpty() && (isRightButton))
-//    {
-//        person->RotateObjects((int)(objX * 300),
-//                                (int)(objY * 300));
-//    }
-
-    /* Refresh the screen */
-    glutPostRedisplay( );
-}
-
-/*-----------------------------------------------------------------------------
  *  Reset
  *  Resets the model to have its default values
  *-----------------------------------------------------------------------------*/
 void Reset( void )
 {
     /* Default all rotations and translations */
-    rotX = rotY = traX = traY = 0;
-
-    /* Default all rotations and translations */
     transforms.Reset();
+
+    /* Set the light position */
+    lightPos[0] = lightPos[1] = lightPos[2] = 2.5;
 }
 
 /*-----------------------------------------------------------------------------
@@ -432,9 +261,6 @@ void Reset( void )
  *-----------------------------------------------------------------------------*/
 void EnableLighting( void )
 {
-    /* Create a Light Position */
-    GLfloat lightPos[] = { 10, 10, 10, 1 };
-
     /* Enable the lighting */
     if(globalLight) glEnable(GL_LIGHTING);
     else glDisable(GL_LIGHTING);
@@ -451,7 +277,6 @@ void EnableLighting( void )
     /* Enable the Shading */
     glShadeModel(GL_SMOOTH);
 }
-
 
 /*-----------------------------------------------------------------------------
  *  CreatePrimitive
