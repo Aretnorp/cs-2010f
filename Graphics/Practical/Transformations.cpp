@@ -14,17 +14,29 @@
 #include "Transformations.h"
 #include <stdio.h>
 
+/*-----------------------------------------------------------------------------
+*  Transform
+*  Constructor
+*-----------------------------------------------------------------------------*/
 Transformations::Transformations(void)
 {
     this->Reset( );
     this->currentTransform = &(this->rotate);
 }
 
+/*-----------------------------------------------------------------------------
+*  ~Transform
+*  Destructor
+*-----------------------------------------------------------------------------*/
 Transformations::~Transformations(void)
 {
 
 }
 
+/*-----------------------------------------------------------------------------
+*  GetTransformations
+*  Gets the Transformations (all)
+*-----------------------------------------------------------------------------*/
 void Transformations::GetTransformations(void)
 {
     this->GetTranslate( );
@@ -32,21 +44,39 @@ void Transformations::GetTransformations(void)
     this->GetScale( );
 }
 
+/*-----------------------------------------------------------------------------
+*  GetRotation
+*  Gets the Rotation
+*-----------------------------------------------------------------------------*/
 void Transformations::GetRotation(void)
 {
     glRotatef(this->rotate.x, 1.0, 0.0, 0.0);
     glRotatef(this->rotate.y, 0.0, 1.0, 0.0);
     glRotatef(this->rotate.z, 0.0, 0.0, 1.0);
 }
+
+/*-----------------------------------------------------------------------------
+*  GetScale
+*  Gets the Scale
+*-----------------------------------------------------------------------------*/
 void Transformations::GetScale(void)
 {
     glScalef(this->scale.x, this->scale.y, this->scale.z);
 }
+
+/*-----------------------------------------------------------------------------
+*  GetTranslate
+*  Gets the translation
+*-----------------------------------------------------------------------------*/
 void Transformations::GetTranslate(void)
 {
     glTranslatef(this->translate.x, this->translate.y, this->translate.z);
 }
 
+/*-----------------------------------------------------------------------------
+*  SetType
+*  Sets the current Transform for selection
+*-----------------------------------------------------------------------------*/
 void Transformations::SetType(TRANSLATE_TYPE type)
 {
     switch(type)
@@ -61,6 +91,10 @@ void Transformations::SetType(TRANSLATE_TYPE type)
     this->type = type;
 }
 
+/*-----------------------------------------------------------------------------
+*  SetX
+*  Sets the X attribute of current transform
+*-----------------------------------------------------------------------------*/
 void Transformations::SetX( float x )
 {
     if((type == TRANSLATE) || (type == SCALE))
@@ -69,6 +103,10 @@ void Transformations::SetX( float x )
         this->currentTransform->x += x;
 }
 
+/*-----------------------------------------------------------------------------
+*  SetY
+*  Sets the Y attribute of current transform
+*-----------------------------------------------------------------------------*/
 void Transformations::SetY( float y )
 {
     if((type == TRANSLATE) || (type == SCALE))
@@ -77,6 +115,10 @@ void Transformations::SetY( float y )
         this->currentTransform->y += y;
 }
 
+/*-----------------------------------------------------------------------------
+*  SetZ
+*  Sets the Z attribute of current transform
+*-----------------------------------------------------------------------------*/
 void Transformations::SetZ( float z )
 {
     if((type == TRANSLATE) || (type == SCALE))
@@ -85,6 +127,10 @@ void Transformations::SetZ( float z )
         this->currentTransform->z += z;
 }
 
+/*-----------------------------------------------------------------------------
+*  Reset
+*  Resets the transformations
+*-----------------------------------------------------------------------------*/
 void Transformations::Reset( void )
 {
     this->scale.x = this->scale.y = this->scale.z = 1;
