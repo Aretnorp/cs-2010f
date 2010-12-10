@@ -34,6 +34,7 @@
 #include "Head.h"
 #include "texture.h"
 #include "texture.c"
+#include "normal.c"
 
 GLUquadricObj *sphere;
 GLuint texture[1]; /* Textures */
@@ -44,35 +45,81 @@ GLuint texture[1]; /* Textures */
 *-----------------------------------------------------------------------------*/
 Head::Head(int size, RotationLimits* rot)
 {
-	this->size = size;
-	this->head = new Square(this->size, rot);
+        this->size = size;
+        this->rot = rot;
 
-	// Load the texture
-	glGenTextures(1, texture);
-	LoadTexture("earth.rgb", 0);
+        // Load the texture
+        glGenTextures(1, texture);
+        char file[] = "eye.rgb";
+        LoadTexture(file, 0);
 
-	// Enable textures
-	glBindTexture(GL_TEXTURE_2D, texture[0]);
+        // Enable textures
+        glBindTexture(GL_TEXTURE_2D, texture[0]);
 
-	// Load the textures
-	this->index = glGenLists(1);
-	sphere = gluNewQuadric();
-	gluQuadricTexture(sphere, GL_TRUE);
+        // Load the textures
+        this->index = glGenLists(2);
+        sphere = gluNewQuadric();
+        gluQuadricTexture(sphere, GL_TRUE);
 
-	// Enable texturing
-	glEnable(GL_TEXTURE_2D);
+        // Enable texturing
+        glEnable(GL_TEXTURE_2D);
 
-	// Create the eye list
-	glNewList(this->index, GL_COMPILE);
-		// Scale for the Sphere
-		glScalef(this->size / 2, this->size / 4, this->size);
+        // Create the eye list
+        glNewList(this->index, GL_COMPILE);
+                // Scale for the Sphere
+                glScalef(this->size / 2, this->size / 4, this->size);
 
-		// Create the Sphere
-		gluSphere(sphere, 1.0, 10, 10);
-	glEndList();
+                // Create the Sphere
+                gluSphere(sphere, 1.0, 10, 10);
+        glEndList();
 
-	// Disable texturing
-	glDisable(GL_TEXTURE_2D);
+        // Create the Pyramid list
+        const GLfloat V0[] = { this->size, this->size, 0.0 };
+        const GLfloat V1[] = { -this->size, this->size, 0.0 };
+        const GLfloat V2[] = { -this->size, -this->size, 0.0 };
+        const GLfloat V3[] = { this->size, -this->size, 0.0 };
+        const GLfloat T0[] = { 0.0, 0.0, this->size };
+        glNewList(this->index + 1, GL_COMPILE);
+                // Create the Pyramid
+                glBegin(GL_QUADS);
+                        glNormal3fv(UnitNormal(V3[0], V3[1], V3[2],
+                                               V2[0], V2[1], V2[2],
+                                               V1[0], V1[1], V1[2]));
+                        glNormal3fv(UnitNormal(V3[0], V3[1], V3[2],
+                                               V1[0], V1[1], V1[2],
+                                               V0[0], V0[1], V0[2]));
+                        glVertex3fv(V3);
+                        glVertex3fv(V2);
+                        glVertex3fv(V1);
+                        glVertex3fv(V0);
+                glEnd( );
+                glBegin(GL_TRIANGLE_FAN);
+                        glNormal3fv(UnitNormal(T0[0], T0[1], T0[2],
+                                               V0[0], V0[1], V0[2],
+                                               V1[0], V1[1], V1[2]));
+                        glVertex3fv(T0);
+                        glVertex3fv(V0);
+                        glVertex3fv(V1);
+
+                        glNormal3fv(UnitNormal(T0[0], T0[1], T0[2],
+                                               V1[0], V1[1], V1[2],
+                                               V2[0], V2[1], V2[2]));
+                        glVertex3fv(V2);
+
+                        glNormal3fv(UnitNormal(T0[0], T0[1], T0[2],
+                                               V2[0], V2[1], V2[2],
+                                               V3[0], V3[1], V3[2]));
+                        glVertex3fv(V3);
+
+                        glNormal3fv(UnitNormal(T0[0], T0[1], T0[2],
+                                               V3[0], V3[1], V3[2],
+                                               V0[0], V0[1], V0[2]));\
+                        glVertex3fv(V0);
+                glEnd( );
+        glEndList();
+
+        // Disable texturing
+        glDisable(GL_TEXTURE_2D);
 }
 
 /*-----------------------------------------------------------------------------
@@ -81,7 +128,6 @@ Head::Head(int size, RotationLimits* rot)
 *-----------------------------------------------------------------------------*/
 Head::~Head(void)
 {
-	delete this->head;
 }
 
 /*-----------------------------------------------------------------------------
@@ -90,34 +136,26 @@ Head::~Head(void)
 *-----------------------------------------------------------------------------*/
 void Head::Draw(void)
 {
-	glPushMatrix();
-    	// First, create the square
-    	this->head->Draw();
+        glPushMatrix();
+                // First, create the square
+                Shape::Draw();
+                glCallList(this->index + 1);
 
-    	// Next, position ourselves for the eye
-    	glTranslatef(0.0, -(this->size / 2), this->size);
+                // Next, position ourselves for the eye
+                glTranslatef(0.0, 0.0, this->size);
 
-		// Enable texturing
-		glEnable(GL_TEXTURE_2D);
+                glPushMatrix( );
+                        // Enable texturing
+                        glEnable(GL_TEXTURE_2D);
 
-		// Create the Sphere
-		glCallList(this->index);
+                        // Create the Sphere
+                        glCallList(this->index);
 
-		// Disable texturing
-		glDisable(GL_TEXTURE_2D);
-	glPopMatrix( );
+                        // Disable texturing
+                        glDisable(GL_TEXTURE_2D);
+                glPopMatrix( );
+        glPopMatrix( );
 }
-
-
-/*-----------------------------------------------------------------------------
-*  RotateObject
-*  Rotates the Head object
-*-----------------------------------------------------------------------------*/
-void Head::RotateObject(int x, int y)
-{
-	this->head->RotateObject(x, y);
-}
-
 
 /*-----------------------------------------------------------------------------
 *  LoadTexture
@@ -125,23 +163,23 @@ void Head::RotateObject(int x, int y)
 *-----------------------------------------------------------------------------*/
 void Head::LoadTexture(char *fn, int t_num)
 {
-	int texwid, texht;
-	int texcomps;
-	unsigned *teximage;
- 
-	teximage = read_texture(fn, &texwid, &texht, &texcomps);
-	if (!teximage)
-	{
-		printf("Sorry, can't read texture file...");
-		exit(0);
-	}
-	glBindTexture(GL_TEXTURE_2D, texture[t_num]);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texwid, texht, 0, GL_RGBA, GL_UNSIGNED_BYTE, teximage);
-	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, texwid, texht, GL_RGBA, GL_UNSIGNED_BYTE, teximage);
+        int texwid, texht;
+        int texcomps;
+        unsigned *teximage;
 
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
+        teximage = read_texture(fn, &texwid, &texht, &texcomps);
+        if (!teximage)
+        {
+                printf("Sorry, can't read texture file...");
+                exit(0);
+        }
+        glBindTexture(GL_TEXTURE_2D, texture[t_num]);
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texwid, texht, 0, GL_RGBA, GL_UNSIGNED_BYTE, teximage);
+        gluBuild2DMipmaps(GL_TEXTURE_2D, 3, texwid, texht, GL_RGBA, GL_UNSIGNED_BYTE, teximage);
 
-	free(teximage);
-} 
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
+
+        free(teximage);
+}

@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename:  Head.h
+ *       Filename:  Thompson_04_8263.c
  *
  *    Description:  Creates a Puppet model that can be modified via the joints
  *
@@ -31,23 +31,3 @@
  *           12.To add textures to complex objects
  * =====================================================================================
  */
-#ifndef __HEAD_H_
-#define __HEAD_H_
-#include "Shape.h"
-#include "Square.h"
-
-class Head :
-	public Shape
-{
-private:
-	int size;
-	int index;
-	void LoadTexture(char*, int);
-public:
-	Head(int size, RotationLimits* = new RotationLimits());
-	~Head(void);
-
-	void Draw();
-};
-#endif
-
